@@ -148,31 +148,9 @@ async function resolveUser(req, res, next) {
   next();
 }
 
-// ─── Rate Limiting ───────────────────────────────────────────────────────────
+// ─── Rate Limiting (disabled for now) ─────────────────────────────────────────
 function checkRateLimit(req, res, next) {
-  if (req.userTier === 'paid') {
-    req.searchesRemaining = null; // unlimited
-    return next();
-  }
-
-  const ip = req.ip || req.connection.remoteAddress || 'unknown';
-  const today = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
-
-  const row = getRateLimit.get(ip, today);
-  const currentCount = row ? row.search_count : 0;
-
-  if (currentCount >= DAILY_SEARCH_LIMIT) {
-    return res.status(429).json({
-      error: 'Daily search limit reached',
-      searches_remaining: 0,
-      daily_limit: DAILY_SEARCH_LIMIT,
-    });
-  }
-
-  // Increment counter
-  upsertRateLimit.run(ip, today);
-  req.searchesRemaining = DAILY_SEARCH_LIMIT - currentCount - 1;
-
+  req.searchesRemaining = null; // unlimited — rate limiting disabled
   next();
 }
 
