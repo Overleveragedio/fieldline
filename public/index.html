@@ -1,0 +1,1941 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>FIELDLINE — Industrial Sourcing Intelligence</title>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@300;400;500;600;700;800&family=IBM+Plex+Mono:wght@300;400;500&family=Barlow:wght@300;400;500&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --bg: #0a0c0b;
+    --surface: #111412;
+    --surface2: #181c19;
+    --border: #232820;
+    --border-bright: #2e3429;
+    --amber: #f0a500;
+    --amber-dim: #7a5400;
+    --amber-glow: rgba(240,165,0,0.12);
+    --steel: #4a6fa5;
+    --steel-dim: #2a3f5f;
+    --text: #c8cfc4;
+    --text-dim: #5a6455;
+    --text-bright: #e8efe4;
+    --danger: #c0392b;
+    --success: #2ecc71;
+    --mono: 'IBM Plex Mono', monospace;
+    --display: 'Barlow Condensed', sans-serif;
+    --body: 'Barlow', sans-serif;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--body);
+    min-height: 100vh;
+    overflow-x: hidden;
+    background-image:
+      radial-gradient(ellipse 80% 60% at 50% -10%, rgba(240,165,0,0.04) 0%, transparent 70%),
+      repeating-linear-gradient(0deg, transparent, transparent 39px, rgba(255,255,255,0.015) 39px, rgba(255,255,255,0.015) 40px),
+      repeating-linear-gradient(90deg, transparent, transparent 39px, rgba(255,255,255,0.015) 39px, rgba(255,255,255,0.015) 40px);
+  }
+
+  /* ─── HEADER ─── */
+  header {
+    border-bottom: 1px solid var(--border);
+    padding: 0 32px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 56px;
+    background: rgba(10,12,11,0.9);
+    backdrop-filter: blur(8px);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+
+  .logo {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+  }
+
+  .logo-mark {
+    font-family: var(--display);
+    font-weight: 800;
+    font-size: 22px;
+    letter-spacing: 0.12em;
+    color: var(--amber);
+    text-transform: uppercase;
+  }
+
+  .logo-sub {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--text-dim);
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+  }
+
+  .header-status {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--text-dim);
+    letter-spacing: 0.1em;
+  }
+
+  .status-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--success);
+    box-shadow: 0 0 6px var(--success);
+    animation: pulse-dot 2s infinite;
+  }
+
+  @keyframes pulse-dot {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.4; }
+  }
+
+  /* ─── MAIN LAYOUT ─── */
+  main {
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 40px 24px 80px;
+  }
+
+  /* ─── HERO ─── */
+  .hero {
+    text-align: center;
+    padding: 48px 0 40px;
+  }
+
+  .hero-eyebrow {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: var(--amber);
+    margin-bottom: 16px;
+  }
+
+  .hero-title {
+    font-family: var(--display);
+    font-size: clamp(36px, 5vw, 60px);
+    font-weight: 700;
+    color: var(--text-bright);
+    line-height: 1.05;
+    letter-spacing: 0.02em;
+    margin-bottom: 12px;
+  }
+
+  .hero-title span { color: var(--amber); }
+
+  .hero-desc {
+    font-size: 15px;
+    color: var(--text-dim);
+    max-width: 480px;
+    margin: 0 auto;
+    line-height: 1.6;
+  }
+
+  /* ─── INPUT PANEL ─── */
+  .input-panel {
+    background: var(--surface);
+    border: 1px solid var(--border-bright);
+    border-radius: 4px;
+    margin-bottom: 32px;
+    overflow: hidden;
+  }
+
+  .mode-tabs {
+    display: flex;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .mode-tab {
+    flex: 1;
+    padding: 12px 20px;
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s;
+    border-bottom: 2px solid transparent;
+    margin-bottom: -1px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+  }
+
+  .mode-tab:hover { color: var(--text); background: var(--surface2); }
+
+  .mode-tab.active {
+    color: var(--amber);
+    border-bottom-color: var(--amber);
+    background: var(--amber-glow);
+  }
+
+  .input-body { padding: 24px; }
+
+  /* Text mode */
+  .text-input-wrap {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .input-row {
+    display: flex;
+    gap: 10px;
+    align-items: stretch;
+  }
+
+  .field-group {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .field-label {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+  }
+
+  .field-input {
+    background: var(--bg);
+    border: 1px solid var(--border-bright);
+    border-radius: 3px;
+    color: var(--text-bright);
+    font-family: var(--mono);
+    font-size: 14px;
+    padding: 11px 14px;
+    width: 100%;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    outline: none;
+  }
+
+  .field-input::placeholder { color: var(--text-dim); font-size: 12px; }
+  .field-input:focus {
+    border-color: var(--amber-dim);
+    box-shadow: 0 0 0 1px var(--amber-dim), inset 0 0 16px rgba(240,165,0,0.04);
+  }
+
+  .field-select {
+    background: var(--bg);
+    border: 1px solid var(--border-bright);
+    border-radius: 3px;
+    color: var(--text);
+    font-family: var(--mono);
+    font-size: 12px;
+    padding: 11px 14px;
+    width: 100%;
+    outline: none;
+    cursor: pointer;
+    transition: border-color 0.2s;
+  }
+  .field-select:focus { border-color: var(--amber-dim); }
+
+  /* Image mode */
+  .image-drop-zone {
+    border: 1px dashed var(--border-bright);
+    border-radius: 4px;
+    padding: 40px 20px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s;
+    position: relative;
+    background: var(--bg);
+  }
+
+  .image-drop-zone:hover, .image-drop-zone.dragging {
+    border-color: var(--amber-dim);
+    background: var(--amber-glow);
+  }
+
+  .image-drop-zone input[type="file"] {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    cursor: pointer;
+    width: 100%;
+    height: 100%;
+  }
+
+  .drop-icon {
+    font-size: 32px;
+    margin-bottom: 10px;
+    opacity: 0.5;
+  }
+
+  .drop-title {
+    font-family: var(--display);
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 4px;
+    letter-spacing: 0.05em;
+  }
+
+  .drop-sub {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--text-dim);
+    letter-spacing: 0.1em;
+  }
+
+  .image-preview-wrap {
+    display: none;
+    align-items: center;
+    gap: 16px;
+    background: var(--bg);
+    border: 1px solid var(--border-bright);
+    border-radius: 3px;
+    padding: 12px;
+    margin-bottom: 12px;
+  }
+
+  .image-preview-wrap.visible { display: flex; }
+
+  .image-preview-wrap img {
+    width: 80px;
+    height: 60px;
+    object-fit: cover;
+    border-radius: 2px;
+    border: 1px solid var(--border);
+  }
+
+  .image-preview-info { flex: 1; }
+
+  .image-preview-name {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--text);
+    margin-bottom: 3px;
+  }
+
+  .image-preview-size {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--text-dim);
+  }
+
+  .btn-clear {
+    background: none;
+    border: 1px solid var(--border-bright);
+    border-radius: 3px;
+    color: var(--text-dim);
+    font-family: var(--mono);
+    font-size: 10px;
+    padding: 6px 10px;
+    cursor: pointer;
+    transition: all 0.2s;
+    letter-spacing: 0.1em;
+  }
+
+  .btn-clear:hover { border-color: var(--danger); color: var(--danger); }
+
+  /* Submit button */
+  .btn-search {
+    background: var(--amber);
+    color: #0a0c0b;
+    border: none;
+    border-radius: 3px;
+    font-family: var(--display);
+    font-weight: 700;
+    font-size: 14px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    padding: 13px 28px;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    white-space: nowrap;
+    align-self: flex-end;
+  }
+
+  .btn-search:hover { background: #ffc107; transform: translateY(-1px); box-shadow: 0 4px 16px rgba(240,165,0,0.3); }
+  .btn-search:active { transform: translateY(0); }
+  .btn-search:disabled { opacity: 0.4; cursor: not-allowed; transform: none; box-shadow: none; }
+
+  /* ─── LOADING ─── */
+  .loading-panel {
+    display: none;
+    padding: 32px;
+    background: var(--surface);
+    border: 1px solid var(--border-bright);
+    border-radius: 4px;
+    margin-bottom: 24px;
+  }
+
+  .loading-panel.visible { display: block; }
+
+  .loading-header {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 20px;
+  }
+
+  .spinner {
+    width: 20px;
+    height: 20px;
+    border: 2px solid var(--border-bright);
+    border-top-color: var(--amber);
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+    flex-shrink: 0;
+  }
+
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .loading-label {
+    font-family: var(--display);
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--text-bright);
+    letter-spacing: 0.05em;
+  }
+
+  .loading-steps {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .loading-step {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--text-dim);
+    transition: color 0.3s;
+  }
+
+  .loading-step.done { color: var(--success); }
+  .loading-step.active { color: var(--amber); }
+
+  .step-icon { width: 14px; text-align: center; }
+
+  /* ─── RESULTS ─── */
+  .results { display: none; flex-direction: column; gap: 20px; }
+  .results.visible { display: flex; }
+
+  .result-section {
+    background: var(--surface);
+    border: 1px solid var(--border-bright);
+    border-radius: 4px;
+    overflow: hidden;
+    animation: slide-up 0.4s ease both;
+  }
+
+  @keyframes slide-up {
+    from { opacity: 0; transform: translateY(12px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .section-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 20px;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface2);
+  }
+
+  .section-badge {
+    font-family: var(--mono);
+    font-size: 9px;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    padding: 3px 8px;
+    border-radius: 2px;
+    font-weight: 500;
+  }
+
+  .badge-priority { background: rgba(240,165,0,0.15); color: var(--amber); border: 1px solid var(--amber-dim); }
+  .badge-mfr { background: rgba(74,111,165,0.15); color: #7aabde; border: 1px solid var(--steel-dim); }
+  .badge-spec { background: rgba(46,204,113,0.1); color: #60c080; border: 1px solid #1a5533; }
+  .badge-alt { background: rgba(180,120,50,0.1); color: #c08040; border: 1px solid #5a3510; }
+
+  .section-title {
+    font-family: var(--display);
+    font-size: 15px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    color: var(--text-bright);
+    text-transform: uppercase;
+  }
+
+  .section-body {
+    padding: 20px;
+    font-size: 14px;
+    line-height: 1.7;
+    color: var(--text);
+  }
+
+  /* Markdown-like content styling */
+  .section-body h3 {
+    font-family: var(--display);
+    font-size: 14px;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--amber);
+    margin: 16px 0 8px;
+  }
+
+  .section-body h3:first-child { margin-top: 0; }
+
+  .section-body p { margin-bottom: 10px; }
+  .section-body p:last-child { margin-bottom: 0; }
+
+  .section-body ul, .section-body ol {
+    padding-left: 18px;
+    margin-bottom: 10px;
+  }
+
+  .section-body li { margin-bottom: 5px; }
+
+  .section-body strong { color: var(--text-bright); }
+
+  .section-body a {
+    color: var(--amber);
+    text-decoration: none;
+    font-family: var(--mono);
+    font-size: 12px;
+  }
+  .section-body a:hover { text-decoration: underline; }
+
+  .section-body code {
+    font-family: var(--mono);
+    font-size: 12px;
+    background: var(--bg);
+    padding: 2px 6px;
+    border-radius: 2px;
+    color: #7aabde;
+  }
+
+  /* Contact cards */
+  .contact-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 12px;
+    margin-top: 4px;
+  }
+
+  .contact-card {
+    background: var(--bg);
+    border: 1px solid var(--border-bright);
+    border-radius: 3px;
+    padding: 14px 16px;
+    transition: border-color 0.2s;
+  }
+
+  .contact-card:hover { border-color: var(--amber-dim); }
+
+  .cc-name {
+    font-family: var(--display);
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-bright);
+    letter-spacing: 0.04em;
+    margin-bottom: 4px;
+  }
+
+  .cc-role {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--text-dim);
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    margin-bottom: 10px;
+  }
+
+  .cc-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 4px;
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--text);
+  }
+
+  .cc-icon { color: var(--text-dim); width: 14px; }
+
+  /* Spec table */
+  .spec-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-family: var(--mono);
+    font-size: 12px;
+  }
+
+  .spec-table tr { border-bottom: 1px solid var(--border); }
+  .spec-table tr:last-child { border-bottom: none; }
+  .spec-table td { padding: 8px 0; vertical-align: top; }
+  .spec-table td:first-child { color: var(--text-dim); width: 40%; padding-right: 16px; }
+  .spec-table td:last-child { color: var(--text-bright); }
+
+  /* Part number display */
+  .part-banner {
+    background: var(--bg);
+    border: 1px solid var(--border-bright);
+    border-left: 3px solid var(--amber);
+    border-radius: 3px;
+    padding: 12px 16px;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .part-banner-label {
+    font-family: var(--mono);
+    font-size: 9px;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+  }
+
+  .part-banner-value {
+    font-family: var(--mono);
+    font-size: 16px;
+    color: var(--amber);
+    letter-spacing: 0.05em;
+  }
+
+  /* Error */
+  .error-panel {
+    display: none;
+    background: rgba(192,57,43,0.08);
+    border: 1px solid rgba(192,57,43,0.3);
+    border-radius: 4px;
+    padding: 20px 24px;
+    font-family: var(--mono);
+    font-size: 12px;
+    color: #e07060;
+    margin-bottom: 24px;
+  }
+
+  .error-panel.visible { display: block; }
+
+  /* History sidebar */
+  .history-bar {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-bottom: 20px;
+  }
+
+  .history-chip {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    padding: 5px 10px;
+    border: 1px solid var(--border-bright);
+    border-radius: 2px;
+    color: var(--text-dim);
+    cursor: pointer;
+    background: var(--surface);
+    transition: all 0.2s;
+  }
+
+  .history-chip:hover { border-color: var(--amber-dim); color: var(--amber); }
+
+  /* Divider */
+  .divider {
+    border: none;
+    border-top: 1px solid var(--border);
+    margin: 4px 0;
+  }
+
+  /* RAW AI response fallback */
+  .raw-response {
+    font-family: var(--mono);
+    font-size: 12px;
+    line-height: 1.8;
+    color: var(--text);
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb { background: var(--border-bright); border-radius: 3px; }
+
+  /* ─── AUTH UI ─── */
+  .header-auth {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .header-user {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--text-dim);
+    letter-spacing: 0.1em;
+    max-width: 180px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .btn-auth {
+    background: none;
+    border: 1px solid var(--border-bright);
+    border-radius: 3px;
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    padding: 6px 14px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .btn-auth.signin {
+    color: var(--amber);
+    border-color: var(--amber-dim);
+  }
+  .btn-auth.signin:hover {
+    background: var(--amber-glow);
+    border-color: var(--amber);
+  }
+
+  .btn-auth.signout {
+    color: var(--text-dim);
+  }
+  .btn-auth.signout:hover {
+    color: var(--danger);
+    border-color: var(--danger);
+  }
+
+  /* ─── TRIAL BANNER ─── */
+  .trial-banner {
+    display: none;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    padding: 8px 24px;
+    background: rgba(240,165,0,0.06);
+    border-bottom: 1px solid var(--amber-dim);
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--text-dim);
+    letter-spacing: 0.05em;
+  }
+
+  .trial-banner.visible { display: flex; }
+
+  .trial-banner .searches-count {
+    color: var(--amber);
+    font-weight: 500;
+  }
+
+  .btn-upgrade {
+    background: var(--amber);
+    color: #0a0c0b;
+    border: none;
+    border-radius: 2px;
+    font-family: var(--mono);
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    padding: 4px 12px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .btn-upgrade:hover { background: #ffc107; }
+
+  /* ─── LOGIN MODAL ─── */
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.7);
+    backdrop-filter: blur(4px);
+    z-index: 200;
+    align-items: center;
+    justify-content: center;
+  }
+  .modal-overlay.visible { display: flex; }
+
+  .modal-box {
+    background: var(--surface);
+    border: 1px solid var(--border-bright);
+    border-radius: 6px;
+    padding: 32px;
+    width: 380px;
+    max-width: 90vw;
+    position: relative;
+  }
+
+  .modal-close {
+    position: absolute;
+    top: 12px;
+    right: 16px;
+    background: none;
+    border: none;
+    color: var(--text-dim);
+    font-size: 18px;
+    cursor: pointer;
+    transition: color 0.2s;
+  }
+  .modal-close:hover { color: var(--text); }
+
+  .modal-title {
+    font-family: var(--display);
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--text-bright);
+    letter-spacing: 0.04em;
+    margin-bottom: 6px;
+  }
+
+  .modal-desc {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--text-dim);
+    margin-bottom: 24px;
+    line-height: 1.6;
+  }
+
+  .modal-input {
+    width: 100%;
+    background: var(--bg);
+    border: 1px solid var(--border-bright);
+    border-radius: 3px;
+    color: var(--text-bright);
+    font-family: var(--mono);
+    font-size: 14px;
+    padding: 12px 14px;
+    outline: none;
+    transition: border-color 0.2s;
+    margin-bottom: 16px;
+  }
+  .modal-input:focus { border-color: var(--amber-dim); }
+  .modal-input::placeholder { color: var(--text-dim); font-size: 12px; }
+
+  .modal-btn {
+    width: 100%;
+    background: var(--amber);
+    color: #0a0c0b;
+    border: none;
+    border-radius: 3px;
+    font-family: var(--display);
+    font-weight: 700;
+    font-size: 14px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    padding: 12px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .modal-btn:hover { background: #ffc107; }
+  .modal-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+  .modal-error {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--danger);
+    margin-top: 12px;
+    display: none;
+  }
+  .modal-error.visible { display: block; }
+
+  .otp-inputs {
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+    margin-bottom: 16px;
+  }
+
+  .otp-input {
+    width: 44px;
+    height: 52px;
+    background: var(--bg);
+    border: 1px solid var(--border-bright);
+    border-radius: 3px;
+    color: var(--text-bright);
+    font-family: var(--mono);
+    font-size: 22px;
+    text-align: center;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  .otp-input:focus { border-color: var(--amber); }
+
+  /* ─── LOCKED DISTRIBUTOR OVERLAY ─── */
+  .locked-overlay {
+    background: rgba(240,165,0,0.04);
+    border: 1px dashed var(--amber-dim);
+    border-radius: 3px;
+    padding: 20px;
+    text-align: center;
+    margin-top: 12px;
+  }
+
+  .locked-icon {
+    font-size: 24px;
+    margin-bottom: 8px;
+    opacity: 0.6;
+  }
+
+  .locked-text {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--text-dim);
+    letter-spacing: 0.05em;
+    margin-bottom: 12px;
+    line-height: 1.6;
+  }
+
+  /* ─── RATE LIMIT PANEL ─── */
+  .rate-limit-panel {
+    display: none;
+    background: rgba(240,165,0,0.06);
+    border: 1px solid var(--amber-dim);
+    border-radius: 4px;
+    padding: 32px;
+    text-align: center;
+    margin-bottom: 24px;
+  }
+  .rate-limit-panel.visible { display: block; }
+
+  .rate-limit-title {
+    font-family: var(--display);
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--text-bright);
+    margin-bottom: 8px;
+  }
+
+  .rate-limit-desc {
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--text-dim);
+    margin-bottom: 20px;
+    line-height: 1.6;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">
+    <span class="logo-mark">Fieldline</span>
+    <span class="logo-sub">Industrial Sourcing Intelligence</span>
+  </div>
+  <div class="header-auth" id="headerAuth">
+    <div class="status-dot"></div>
+    <span class="header-user" id="headerStatus">AI SEARCH ACTIVE</span>
+    <button class="btn-auth signin" id="btnSignIn" onclick="openLoginModal()" style="display:none">SIGN IN</button>
+    <button class="btn-auth signout" id="btnSignOut" onclick="signOut()" style="display:none">SIGN OUT</button>
+  </div>
+</header>
+
+<!-- Trial banner -->
+<div class="trial-banner" id="trialBanner">
+  <span>TRIAL MODE — <span class="searches-count" id="searchesCount">5 of 5</span> searches remaining today</span>
+  <span style="color:var(--border-bright)">|</span>
+  <span>Unlock unlimited searches & full distributor data</span>
+  <button class="btn-upgrade" onclick="handleUpgrade()">UPGRADE</button>
+</div>
+
+<main>
+  <div class="hero">
+    <div class="hero-eyebrow">// Pipe · Valves · Fittings · Flanges</div>
+    <h1 class="hero-title">Find Any Part.<br><span>Source It Fast.</span></h1>
+    <p class="hero-desc">Enter a model number or upload a nameplate photo — the AI searches the web and surfaces distributors, manufacturer contacts, and spec sheets.</p>
+  </div>
+
+  <!-- History chips (populated by JS) -->
+  <div class="history-bar" id="historyBar"></div>
+
+  <!-- Input panel -->
+  <div class="input-panel">
+    <div class="mode-tabs">
+      <button class="mode-tab active" id="tabText" onclick="switchMode('text')">
+        <span>⌨</span> Model / Part Number
+      </button>
+      <button class="mode-tab" id="tabImage" onclick="switchMode('image')">
+        <span>📷</span> Nameplate Photo
+      </button>
+    </div>
+
+    <div class="input-body">
+      <!-- Text mode -->
+      <div id="modeText" class="text-input-wrap">
+        <div class="input-row">
+          <div class="field-group" style="flex:2">
+            <label class="field-label">Model / Part Number</label>
+            <input class="field-input" id="partInput" type="text" placeholder="e.g. VRCF-2-150-CS-RF, 150SRW, 8835A..." autocomplete="off" />
+          </div>
+          <div class="field-group" style="flex:1">
+            <label class="field-label">Product Type</label>
+            <select class="field-select" id="typeSelect">
+              <option value="">— Unknown —</option>
+              <option>Ball Valve</option>
+              <option>Gate Valve</option>
+              <option>Globe Valve</option>
+              <option>Check Valve</option>
+              <option>Butterfly Valve</option>
+              <option>Needle Valve</option>
+              <option>Plug Valve</option>
+              <option>Relief Valve</option>
+              <option>Control Valve</option>
+              <option>Solenoid Valve</option>
+              <option>Pipe Fitting</option>
+              <option>Flange</option>
+              <option>Strainer / Filter</option>
+              <option>Actuator</option>
+              <option>Other</option>
+            </select>
+          </div>
+        </div>
+        <div class="input-row">
+          <div class="field-group" style="flex:2">
+            <label class="field-label">Additional Context <span style="opacity:0.4">(optional)</span></label>
+            <input class="field-input" id="contextInput" type="text" placeholder="e.g. 2-inch, 150# ANSI, carbon steel, found on ammonia line..." />
+          </div>
+          <div class="field-group" style="flex:1">
+            <label class="field-label">Your Region</label>
+            <select class="field-select" id="regionSelect">
+              <option>Western US</option>
+              <option>Eastern US</option>
+              <option>Southern US</option>
+              <option>Midwest US</option>
+              <option>Canada</option>
+              <option>Worldwide</option>
+            </select>
+          </div>
+          <button class="btn-search" id="searchBtn" onclick="runSearch()">
+            ⌕ &nbsp;SOURCE IT
+          </button>
+        </div>
+      </div>
+
+      <!-- Image mode -->
+      <div id="modeImage" style="display:none">
+        <div class="image-preview-wrap" id="imagePreview">
+          <img id="previewImg" src="" alt="Preview" />
+          <div class="image-preview-info">
+            <div class="image-preview-name" id="previewName">—</div>
+            <div class="image-preview-size" id="previewSize">—</div>
+          </div>
+          <button class="btn-clear" onclick="clearImage()">✕ CLEAR</button>
+        </div>
+        <div class="image-drop-zone" id="dropZone">
+          <input type="file" id="fileInput" accept="image/*" onchange="handleFile(event)" />
+          <div class="drop-icon">📷</div>
+          <div class="drop-title">Drop Nameplate Photo Here</div>
+          <div class="drop-sub">or click to browse — JPG, PNG, HEIC accepted</div>
+        </div>
+        <div class="input-row" style="margin-top:12px">
+          <div class="field-group">
+            <label class="field-label">Additional Notes <span style="opacity:0.4">(optional)</span></label>
+            <input class="field-input" id="imageNotes" type="text" placeholder="e.g. found on suction line, refrigeration system, 3-inch..." />
+          </div>
+          <div class="field-group" style="max-width:180px">
+            <label class="field-label">Your Region</label>
+            <select class="field-select" id="imageRegion">
+              <option>Western US</option>
+              <option>Eastern US</option>
+              <option>Southern US</option>
+              <option>Midwest US</option>
+              <option>Canada</option>
+              <option>Worldwide</option>
+            </select>
+          </div>
+          <button class="btn-search" id="imageSearchBtn" onclick="runImageSearch()">
+            ⌕ &nbsp;SOURCE IT
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Loading -->
+  <div class="loading-panel" id="loadingPanel">
+    <div class="loading-header">
+      <div class="spinner"></div>
+      <div class="loading-label">Searching industrial databases...</div>
+    </div>
+    <div class="loading-steps" id="loadingSteps">
+      <div class="loading-step active" id="step1"><span class="step-icon">◉</span> Identifying manufacturer from part number</div>
+      <div class="loading-step" id="step2"><span class="step-icon">○</span> Locating authorized distributors</div>
+      <div class="loading-step" id="step3"><span class="step-icon">○</span> Pulling contact info &amp; rep networks</div>
+      <div class="loading-step" id="step4"><span class="step-icon">○</span> Fetching spec sheets &amp; cross-references</div>
+    </div>
+  </div>
+
+  <!-- Error -->
+  <div class="error-panel" id="errorPanel"></div>
+
+  <!-- Rate limit reached -->
+  <div class="rate-limit-panel" id="rateLimitPanel">
+    <div class="rate-limit-title">Daily Search Limit Reached</div>
+    <div class="rate-limit-desc">You've used all 5 free searches for today.<br>Upgrade for unlimited searches and full distributor data, or come back tomorrow.</div>
+    <button class="btn-upgrade" onclick="handleUpgrade()" style="padding:10px 24px;font-size:12px">UPGRADE NOW</button>
+  </div>
+
+  <!-- Results -->
+  <div class="results" id="results"></div>
+
+</main>
+
+<!-- Login Modal -->
+<div class="modal-overlay" id="loginModal">
+  <div class="modal-box">
+    <button class="modal-close" onclick="closeLoginModal()">✕</button>
+
+    <!-- Step 1: Email -->
+    <div id="loginStep1">
+      <div class="modal-title">Sign In</div>
+      <div class="modal-desc">Enter your email to get a verification code. Unlock full access with a paid plan.</div>
+      <input class="modal-input" id="loginEmail" type="email" placeholder="your@email.com" />
+      <button class="modal-btn" id="btnSendCode" onclick="sendOtpCode()">SEND CODE</button>
+      <div class="modal-error" id="loginError1"></div>
+    </div>
+
+    <!-- Step 2: OTP -->
+    <div id="loginStep2" style="display:none">
+      <div class="modal-title">Enter Code</div>
+      <div class="modal-desc">We sent a 6-digit code to <strong id="otpEmailDisplay"></strong></div>
+      <div class="otp-inputs" id="otpInputs">
+        <input class="otp-input" type="text" maxlength="1" inputmode="numeric" />
+        <input class="otp-input" type="text" maxlength="1" inputmode="numeric" />
+        <input class="otp-input" type="text" maxlength="1" inputmode="numeric" />
+        <input class="otp-input" type="text" maxlength="1" inputmode="numeric" />
+        <input class="otp-input" type="text" maxlength="1" inputmode="numeric" />
+        <input class="otp-input" type="text" maxlength="1" inputmode="numeric" />
+      </div>
+      <button class="modal-btn" id="btnVerifyCode" onclick="verifyOtpCode()">VERIFY</button>
+      <div class="modal-error" id="loginError2"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ─── AUTH & TIER STATE ───────────────────────────────────────────────────────
+let authToken = null;
+let userEmail = null;
+let userTier = 'trial';
+let searchesRemaining = 5;
+let privyReady = false;
+let privyClient = null;
+
+// ─── STATE ───────────────────────────────────────────────────────────────────
+let currentMode = 'text';
+let uploadedImageBase64 = null;
+let uploadedImageType = null;
+let searchHistory = JSON.parse(localStorage.getItem('fieldline_history') || '[]');
+
+// ─── MODE SWITCH ─────────────────────────────────────────────────────────────
+function switchMode(mode) {
+  currentMode = mode;
+  document.getElementById('tabText').classList.toggle('active', mode === 'text');
+  document.getElementById('tabImage').classList.toggle('active', mode === 'image');
+  document.getElementById('modeText').style.display = mode === 'text' ? 'flex' : 'none';
+  document.getElementById('modeImage').style.display = mode === 'image' ? 'block' : 'none';
+}
+
+// ─── IMAGE HANDLING ───────────────────────────────────────────────────────────
+function handleFile(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  loadImageFile(file);
+}
+
+function loadImageFile(file) {
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    const result = e.target.result;
+    const base64 = result.split(',')[1];
+    uploadedImageBase64 = base64;
+    uploadedImageType = file.type || 'image/jpeg';
+    document.getElementById('previewImg').src = result;
+    document.getElementById('previewName').textContent = file.name;
+    document.getElementById('previewSize').textContent = (file.size / 1024).toFixed(1) + ' KB';
+    document.getElementById('imagePreview').classList.add('visible');
+    document.getElementById('dropZone').style.display = 'none';
+  };
+  reader.readAsDataURL(file);
+}
+
+function clearImage() {
+  uploadedImageBase64 = null;
+  uploadedImageType = null;
+  document.getElementById('imagePreview').classList.remove('visible');
+  document.getElementById('dropZone').style.display = 'block';
+  document.getElementById('fileInput').value = '';
+}
+
+// Drag & drop
+const dz = document.getElementById('dropZone');
+dz.addEventListener('dragover', (e) => { e.preventDefault(); dz.classList.add('dragging'); });
+dz.addEventListener('dragleave', () => dz.classList.remove('dragging'));
+dz.addEventListener('drop', (e) => {
+  e.preventDefault();
+  dz.classList.remove('dragging');
+  const file = e.dataTransfer.files[0];
+  if (file && file.type.startsWith('image/')) loadImageFile(file);
+});
+
+// ─── HISTORY ──────────────────────────────────────────────────────────────────
+function renderHistory() {
+  const bar = document.getElementById('historyBar');
+  bar.innerHTML = '';
+  if (searchHistory.length === 0) return;
+  const label = document.createElement('span');
+  label.style.cssText = 'font-family:var(--mono);font-size:10px;color:var(--text-dim);letter-spacing:0.1em;align-self:center;margin-right:4px;';
+  label.textContent = 'RECENT:';
+  bar.appendChild(label);
+  searchHistory.slice(-6).reverse().forEach(q => {
+    const chip = document.createElement('button');
+    chip.className = 'history-chip';
+    chip.textContent = q;
+    chip.onclick = () => {
+      document.getElementById('partInput').value = q;
+      switchMode('text');
+      runSearch();
+    };
+    bar.appendChild(chip);
+  });
+}
+
+function addToHistory(query) {
+  searchHistory = searchHistory.filter(q => q !== query);
+  searchHistory.push(query);
+  if (searchHistory.length > 12) searchHistory.shift();
+  localStorage.setItem('fieldline_history', JSON.stringify(searchHistory));
+  renderHistory();
+}
+
+renderHistory();
+
+// ─── PRIVY AUTH ──────────────────────────────────────────────────────────────
+// We use Privy's REST-style OTP flow (works without React SDK).
+// The Privy App ID is embedded here — it's a public client ID, safe for frontend.
+const PRIVY_APP_ID = ''; // ← Set your Privy App ID here
+
+let otpFlowState = null; // tracks the OTP flow
+
+async function initAuth() {
+  // Restore session from localStorage
+  const savedToken = localStorage.getItem('fieldline_token');
+  const savedEmail = localStorage.getItem('fieldline_email');
+
+  if (savedToken) {
+    authToken = savedToken;
+    userEmail = savedEmail;
+    await syncUser();
+    updateAuthUI();
+  } else {
+    updateAuthUI();
+  }
+}
+
+function updateAuthUI() {
+  const btnSignIn = document.getElementById('btnSignIn');
+  const btnSignOut = document.getElementById('btnSignOut');
+  const headerStatus = document.getElementById('headerStatus');
+  const trialBanner = document.getElementById('trialBanner');
+
+  if (authToken && userEmail) {
+    // Logged in
+    btnSignIn.style.display = 'none';
+    btnSignOut.style.display = 'inline-block';
+    headerStatus.textContent = userEmail;
+
+    if (userTier === 'paid') {
+      trialBanner.classList.remove('visible');
+    } else {
+      trialBanner.classList.add('visible');
+      document.getElementById('searchesCount').textContent =
+        `${searchesRemaining} of 5`;
+    }
+  } else {
+    // Not logged in
+    btnSignIn.style.display = 'inline-block';
+    btnSignOut.style.display = 'none';
+    headerStatus.textContent = 'AI SEARCH ACTIVE';
+    trialBanner.classList.add('visible');
+    document.getElementById('searchesCount').textContent =
+      `${searchesRemaining} of 5`;
+  }
+}
+
+async function syncUser() {
+  try {
+    const resp = await fetch('/api/auth/sync', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${authToken}`,
+      },
+      body: JSON.stringify({ email: userEmail }),
+    });
+
+    if (resp.ok) {
+      const data = await resp.json();
+      userTier = data.tier;
+    } else if (resp.status === 401) {
+      // Token expired
+      signOut();
+    }
+  } catch {
+    // Network error — keep existing state
+  }
+}
+
+function openLoginModal() {
+  document.getElementById('loginModal').classList.add('visible');
+  document.getElementById('loginStep1').style.display = 'block';
+  document.getElementById('loginStep2').style.display = 'none';
+  document.getElementById('loginEmail').value = '';
+  document.getElementById('loginError1').classList.remove('visible');
+  document.getElementById('loginError2').classList.remove('visible');
+  setTimeout(() => document.getElementById('loginEmail').focus(), 100);
+}
+
+function closeLoginModal() {
+  document.getElementById('loginModal').classList.remove('visible');
+  otpFlowState = null;
+}
+
+async function sendOtpCode() {
+  const email = document.getElementById('loginEmail').value.trim();
+  if (!email || !email.includes('@')) {
+    showLoginError(1, 'Please enter a valid email address.');
+    return;
+  }
+
+  const btn = document.getElementById('btnSendCode');
+  btn.disabled = true;
+  btn.textContent = 'SENDING...';
+
+  try {
+    if (!PRIVY_APP_ID) {
+      // Dev mode: skip OTP, go straight to mock auth
+      otpFlowState = { email };
+      document.getElementById('loginStep1').style.display = 'none';
+      document.getElementById('loginStep2').style.display = 'block';
+      document.getElementById('otpEmailDisplay').textContent = email;
+      setupOtpInputs();
+      return;
+    }
+
+    const resp = await fetch('https://auth.privy.io/api/v1/passwordless/init', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'privy-app-id': PRIVY_APP_ID,
+      },
+      body: JSON.stringify({ email }),
+    });
+
+    if (!resp.ok) {
+      const data = await resp.json();
+      throw new Error(data.message || 'Failed to send code');
+    }
+
+    otpFlowState = { email };
+    document.getElementById('loginStep1').style.display = 'none';
+    document.getElementById('loginStep2').style.display = 'block';
+    document.getElementById('otpEmailDisplay').textContent = email;
+    setupOtpInputs();
+
+  } catch (err) {
+    showLoginError(1, err.message);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'SEND CODE';
+  }
+}
+
+function setupOtpInputs() {
+  const inputs = document.querySelectorAll('#otpInputs .otp-input');
+  inputs.forEach((inp, i) => {
+    inp.value = '';
+    inp.addEventListener('input', () => {
+      if (inp.value.length === 1 && i < inputs.length - 1) {
+        inputs[i + 1].focus();
+      }
+      // Auto-submit when all filled
+      const code = Array.from(inputs).map(x => x.value).join('');
+      if (code.length === 6) verifyOtpCode();
+    });
+    inp.addEventListener('keydown', (e) => {
+      if (e.key === 'Backspace' && !inp.value && i > 0) {
+        inputs[i - 1].focus();
+      }
+    });
+    // Handle paste
+    inp.addEventListener('paste', (e) => {
+      e.preventDefault();
+      const pasted = (e.clipboardData.getData('text') || '').replace(/\D/g, '').slice(0, 6);
+      pasted.split('').forEach((ch, j) => {
+        if (inputs[i + j]) inputs[i + j].value = ch;
+      });
+      if (pasted.length === 6) verifyOtpCode();
+    });
+  });
+  setTimeout(() => inputs[0].focus(), 100);
+}
+
+async function verifyOtpCode() {
+  const inputs = document.querySelectorAll('#otpInputs .otp-input');
+  const code = Array.from(inputs).map(x => x.value).join('');
+  if (code.length !== 6) {
+    showLoginError(2, 'Please enter the full 6-digit code.');
+    return;
+  }
+
+  const btn = document.getElementById('btnVerifyCode');
+  btn.disabled = true;
+  btn.textContent = 'VERIFYING...';
+
+  try {
+    if (!PRIVY_APP_ID) {
+      // Dev mode: mock successful auth
+      authToken = 'dev-token-' + Date.now();
+      userEmail = otpFlowState.email;
+      userTier = 'trial';
+      localStorage.setItem('fieldline_token', authToken);
+      localStorage.setItem('fieldline_email', userEmail);
+      closeLoginModal();
+      updateAuthUI();
+      return;
+    }
+
+    const resp = await fetch('https://auth.privy.io/api/v1/passwordless/authenticate', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'privy-app-id': PRIVY_APP_ID,
+      },
+      body: JSON.stringify({
+        email: otpFlowState.email,
+        code,
+      }),
+    });
+
+    if (!resp.ok) {
+      const data = await resp.json();
+      throw new Error(data.message || 'Invalid code');
+    }
+
+    const data = await resp.json();
+    authToken = data.token || data.access_token;
+    userEmail = otpFlowState.email;
+
+    localStorage.setItem('fieldline_token', authToken);
+    localStorage.setItem('fieldline_email', userEmail);
+
+    await syncUser();
+    closeLoginModal();
+    updateAuthUI();
+
+  } catch (err) {
+    showLoginError(2, err.message);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'VERIFY';
+  }
+}
+
+function showLoginError(step, msg) {
+  const el = document.getElementById(`loginError${step}`);
+  el.textContent = msg;
+  el.classList.add('visible');
+}
+
+function signOut() {
+  authToken = null;
+  userEmail = null;
+  userTier = 'trial';
+  searchesRemaining = 5;
+  localStorage.removeItem('fieldline_token');
+  localStorage.removeItem('fieldline_email');
+  updateAuthUI();
+}
+
+async function handleUpgrade() {
+  if (!authToken) {
+    openLoginModal();
+    return;
+  }
+
+  try {
+    const resp = await fetch('/api/checkout', {
+      headers: { 'Authorization': `Bearer ${authToken}` },
+    });
+    const data = await resp.json();
+
+    if (data.url) {
+      window.open(data.url, '_blank');
+    } else {
+      alert(data.error || 'Checkout not available yet. Contact support.');
+    }
+  } catch {
+    alert('Could not load checkout. Please try again.');
+  }
+}
+
+// Initialize auth on page load
+initAuth();
+
+// ─── LOADING ANIMATION ────────────────────────────────────────────────────────
+let loadingTimer = null;
+
+function startLoading() {
+  document.getElementById('loadingPanel').classList.add('visible');
+  document.getElementById('results').classList.remove('visible');
+  document.getElementById('results').innerHTML = '';
+  document.getElementById('errorPanel').classList.remove('visible');
+
+  const steps = ['step1','step2','step3','step4'];
+  let i = 0;
+  steps.forEach(s => {
+    const el = document.getElementById(s);
+    el.classList.remove('active','done');
+    el.querySelector('.step-icon').textContent = '○';
+  });
+  document.getElementById('step1').classList.add('active');
+  document.getElementById('step1').querySelector('.step-icon').textContent = '◉';
+
+  loadingTimer = setInterval(() => {
+    if (i < steps.length - 1) {
+      const cur = document.getElementById(steps[i]);
+      cur.classList.remove('active');
+      cur.classList.add('done');
+      cur.querySelector('.step-icon').textContent = '✓';
+      i++;
+      const next = document.getElementById(steps[i]);
+      next.classList.add('active');
+      next.querySelector('.step-icon').textContent = '◉';
+    }
+  }, 2800);
+}
+
+function stopLoading() {
+  clearInterval(loadingTimer);
+  document.getElementById('loadingPanel').classList.remove('visible');
+  ['step1','step2','step3','step4'].forEach(s => {
+    document.getElementById(s).classList.remove('active','done');
+    document.getElementById(s).querySelector('.step-icon').textContent = '○';
+  });
+}
+
+// ─── SYSTEM PROMPT ────────────────────────────────────────────────────────────
+function buildSystemPrompt() {
+  return `You are FIELDLINE, an expert industrial sourcing intelligence system for a supply company specializing in pipes, valves, fittings, flanges, and related industrial components. Your customers are mines, pipelines, refrigeration shops, and construction companies.
+
+When given a part number, model number, nameplate photo, or description, you must perform thorough web research and return a STRUCTURED JSON response (no markdown fences, pure JSON only).
+
+Return this exact JSON structure:
+{
+  "identified": {
+    "manufacturer": "Company name",
+    "product_line": "Product line or series name",
+    "model": "Exact model/part number confirmed",
+    "description": "1-2 sentence description of what this product is",
+    "confidence": "high|medium|low"
+  },
+  "distributors": [
+    {
+      "name": "Distributor company name",
+      "type": "Authorized Distributor|Rep Agent|Direct|Stocking Distributor",
+      "region": "Region or territory",
+      "phone": "Phone number or null",
+      "email": "Email or null",
+      "website": "URL or null",
+      "notes": "Any useful notes like stocking status, specialties"
+    }
+  ],
+  "manufacturer_contact": {
+    "name": "Manufacturer full name",
+    "hq_location": "City, State/Country",
+    "phone": "Main phone or null",
+    "sales_email": "Sales email or null",
+    "website": "URL",
+    "quote_portal": "URL to quote request portal or null",
+    "rep_locator": "URL to rep/distributor locator tool or null",
+    "notes": "Any useful notes"
+  },
+  "specs": [
+    { "key": "Spec name", "value": "Spec value" }
+  ],
+  "documents": [
+    { "type": "Datasheet|Install Manual|Drawing|Catalog", "title": "Document title", "url": "URL or null" }
+  ],
+  "alternates": [
+    {
+      "manufacturer": "Alt manufacturer",
+      "model": "Alt model",
+      "notes": "Why this is a valid cross-ref"
+    }
+  ],
+  "sourcing_notes": "2-3 sentences with practical sourcing advice: lead times if known, whether it's a specialty item, any gotchas, stocking vs factory-order status."
+}
+
+CRITICAL RULES:
+- Use web search aggressively. Search for the part number + "distributor", the manufacturer name + "sales contact", the model + "datasheet PDF", etc.
+- Prioritize DISTRIBUTORS first — that's what matters most to this user.
+- Never make up phone numbers or emails. If you can't confirm, use null.
+- If the part number is ambiguous (multiple manufacturers), list the most likely match and note the ambiguity in sourcing_notes.
+- Return ONLY the JSON object. No preamble, no explanation, no markdown.`;
+}
+
+// ─── TEXT SEARCH ──────────────────────────────────────────────────────────────
+async function runSearch() {
+  const partNum = document.getElementById('partInput').value.trim();
+  if (!partNum) {
+    document.getElementById('partInput').focus();
+    return;
+  }
+
+  const productType = document.getElementById('typeSelect').value;
+  const context = document.getElementById('contextInput').value.trim();
+  const region = document.getElementById('regionSelect').value;
+
+  let userMsg = `Find sourcing information for this industrial component:\n\nPart/Model Number: ${partNum}`;
+  if (productType) userMsg += `\nProduct Type: ${productType}`;
+  if (context) userMsg += `\nAdditional Context: ${context}`;
+  userMsg += `\nPreferred Region for Distributors: ${region}`;
+  userMsg += `\n\nSearch the web thoroughly. Return the JSON response as specified.`;
+
+  addToHistory(partNum);
+  document.getElementById('searchBtn').disabled = true;
+  startLoading();
+
+  try {
+    await callAPI([{ role: 'user', content: userMsg }]);
+  } finally {
+    document.getElementById('searchBtn').disabled = false;
+  }
+}
+
+// ─── IMAGE SEARCH ─────────────────────────────────────────────────────────────
+async function runImageSearch() {
+  if (!uploadedImageBase64) {
+    alert('Please upload a nameplate photo first.');
+    return;
+  }
+
+  const notes = document.getElementById('imageNotes').value.trim();
+  const region = document.getElementById('imageRegion').value;
+
+  const content = [
+    {
+      type: 'image',
+      source: {
+        type: 'base64',
+        media_type: uploadedImageType || 'image/jpeg',
+        data: uploadedImageBase64
+      }
+    },
+    {
+      type: 'text',
+      text: `Read all text and data from this industrial nameplate/tag photo. Extract the model number, manufacturer, part number, serial number, pressure ratings, materials, and any other visible specifications. Then search the web to find distributor contacts, manufacturer info, and spec sheets for this product.${notes ? '\n\nAdditional context: ' + notes : ''}\nPreferred region for distributors: ${region}\n\nReturn the JSON response as specified.`
+    }
+  ];
+
+  document.getElementById('imageSearchBtn').disabled = true;
+  startLoading();
+
+  try {
+    await callAPI([{ role: 'user', content }]);
+  } finally {
+    document.getElementById('imageSearchBtn').disabled = false;
+  }
+}
+
+// ─── API CALL ─────────────────────────────────────────────────────────────────
+async function callAPI(messages) {
+  try {
+    const headers = { 'Content-Type': 'application/json' };
+    if (authToken) {
+      headers['Authorization'] = `Bearer ${authToken}`;
+    }
+
+    const resp = await fetch('/api/search', {
+      method: 'POST',
+      headers,
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 4096,
+        system: buildSystemPrompt(),
+        tools: [{ type: 'web_search_20250305', name: 'web_search' }],
+        messages
+      })
+    });
+
+    const data = await resp.json();
+
+    // Handle rate limit
+    if (resp.status === 429) {
+      stopLoading();
+      searchesRemaining = 0;
+      updateAuthUI();
+      document.getElementById('rateLimitPanel').classList.add('visible');
+      return;
+    }
+
+    if (!resp.ok) {
+      throw new Error(data.error?.message || data.error || `API error ${resp.status}`);
+    }
+
+    // Update tier state from response metadata
+    if (data._fieldline) {
+      userTier = data._fieldline.tier;
+      if (data._fieldline.searches_remaining !== null && data._fieldline.searches_remaining !== undefined) {
+        searchesRemaining = data._fieldline.searches_remaining;
+      }
+      updateAuthUI();
+    }
+
+    // Extract text from all content blocks
+    const fullText = (data.content || [])
+      .filter(b => b.type === 'text')
+      .map(b => b.text)
+      .join('\n');
+
+    stopLoading();
+    document.getElementById('rateLimitPanel').classList.remove('visible');
+    renderResults(fullText);
+
+  } catch (err) {
+    stopLoading();
+    const ep = document.getElementById('errorPanel');
+    ep.textContent = `⚠ Search error: ${err.message}`;
+    ep.classList.add('visible');
+    console.error(err);
+  }
+}
+
+// ─── RENDER RESULTS ───────────────────────────────────────────────────────────
+function renderResults(rawText) {
+  const container = document.getElementById('results');
+  container.innerHTML = '';
+  container.classList.add('visible');
+
+  let data;
+  try {
+    // Strip any accidental markdown fences
+    const clean = rawText.replace(/```json|```/g, '').trim();
+    // Find the outermost { }
+    const start = clean.indexOf('{');
+    const end = clean.lastIndexOf('}');
+    data = JSON.parse(clean.slice(start, end + 1));
+  } catch (e) {
+    // Fall back to raw display
+    const section = makeSection('AI RESPONSE', 'badge-spec', '');
+    section.querySelector('.section-body').innerHTML = `<pre class="raw-response">${escHtml(rawText)}</pre>`;
+    container.appendChild(section);
+    return;
+  }
+
+  // ── Part banner ──
+  if (data.identified) {
+    const id = data.identified;
+    const banner = document.createElement('div');
+    banner.className = 'part-banner';
+    banner.innerHTML = `
+      <div>
+        <div class="part-banner-label">Identified Product</div>
+        <div class="part-banner-value">${escHtml(id.model || '—')}</div>
+      </div>
+      <div style="flex:1;padding-left:16px;border-left:1px solid var(--border)">
+        <div style="font-family:var(--display);font-size:15px;font-weight:600;color:var(--text-bright)">${escHtml(id.manufacturer || '—')}</div>
+        <div style="font-family:var(--mono);font-size:11px;color:var(--text-dim);margin-top:2px">${escHtml(id.product_line || '')} ${id.description ? '· ' + id.description : ''}</div>
+      </div>
+      <div style="font-family:var(--mono);font-size:10px;padding:4px 10px;border-radius:2px;background:${id.confidence==='high'?'rgba(46,204,113,0.1)':id.confidence==='medium'?'rgba(240,165,0,0.1)':'rgba(192,57,43,0.1)'};color:${id.confidence==='high'?'#60c080':id.confidence==='medium'?'var(--amber)':'#e07060'};border:1px solid ${id.confidence==='high'?'#1a5533':id.confidence==='medium'?'var(--amber-dim)':'rgba(192,57,43,0.3)'}">
+        ${(id.confidence||'').toUpperCase()} CONFIDENCE
+      </div>`;
+    container.appendChild(banner);
+  }
+
+  // ── 1. Distributors ──
+  if (data.distributors && data.distributors.length > 0) {
+    const section = makeSection('DISTRIBUTORS & REP CONTACTS', 'badge-priority', '01');
+    const body = section.querySelector('.section-body');
+    const grid = document.createElement('div');
+    grid.className = 'contact-grid';
+    data.distributors.forEach(d => {
+      const card = document.createElement('div');
+      card.className = 'contact-card';
+      card.innerHTML = `
+        <div class="cc-name">${escHtml(d.name || '—')}</div>
+        <div class="cc-role">${escHtml(d.type || '')}${d.region ? ' · ' + d.region : ''}</div>
+        ${d.phone ? `<div class="cc-row"><span class="cc-icon">☎</span>${escHtml(d.phone)}</div>` : ''}
+        ${d.email ? `<div class="cc-row"><span class="cc-icon">✉</span><a href="mailto:${escHtml(d.email)}">${escHtml(d.email)}</a></div>` : ''}
+        ${d.website ? `<div class="cc-row"><span class="cc-icon">⌂</span><a href="${escHtml(d.website)}" target="_blank">${escHtml(truncUrl(d.website))}</a></div>` : ''}
+        ${d.notes ? `<div style="margin-top:8px;font-family:var(--mono);font-size:10px;color:var(--text-dim);line-height:1.5">${escHtml(d.notes)}</div>` : ''}`;
+      grid.appendChild(card);
+    });
+    body.appendChild(grid);
+
+    // Show locked overlay for trial users
+    if (userTier !== 'paid') {
+      const locked = document.createElement('div');
+      locked.className = 'locked-overlay';
+      locked.innerHTML = `
+        <div class="locked-icon">🔒</div>
+        <div class="locked-text">Full distributor list with all contacts is available on the paid plan.</div>
+        <button class="btn-upgrade" onclick="handleUpgrade()">UNLOCK ALL DISTRIBUTORS</button>`;
+      body.appendChild(locked);
+    }
+
+    container.appendChild(section);
+  }
+
+  // ── 2. Manufacturer ──
+  if (data.manufacturer_contact) {
+    const m = data.manufacturer_contact;
+    const section = makeSection('MANUFACTURER CONTACT', 'badge-mfr', '02');
+    const body = section.querySelector('.section-body');
+    const card = document.createElement('div');
+    card.className = 'contact-card';
+    card.style.maxWidth = '480px';
+    card.innerHTML = `
+      <div class="cc-name">${escHtml(m.name || '—')}</div>
+      <div class="cc-role">${escHtml(m.hq_location || '')}</div>
+      ${m.phone ? `<div class="cc-row"><span class="cc-icon">☎</span>${escHtml(m.phone)}</div>` : ''}
+      ${m.sales_email ? `<div class="cc-row"><span class="cc-icon">✉</span><a href="mailto:${escHtml(m.sales_email)}">${escHtml(m.sales_email)}</a></div>` : ''}
+      ${m.website ? `<div class="cc-row"><span class="cc-icon">⌂</span><a href="${escHtml(m.website)}" target="_blank">${escHtml(truncUrl(m.website))}</a></div>` : ''}
+      ${m.quote_portal ? `<div class="cc-row"><span class="cc-icon">✎</span><a href="${escHtml(m.quote_portal)}" target="_blank">Quote Request Portal</a></div>` : ''}
+      ${m.rep_locator ? `<div class="cc-row"><span class="cc-icon">◎</span><a href="${escHtml(m.rep_locator)}" target="_blank">Find a Rep / Distributor</a></div>` : ''}
+      ${m.notes ? `<div style="margin-top:8px;font-family:var(--mono);font-size:10px;color:var(--text-dim);line-height:1.5">${escHtml(m.notes)}</div>` : ''}`;
+    body.appendChild(card);
+    container.appendChild(section);
+  }
+
+  // ── 3. Specs ──
+  if (data.specs && data.specs.length > 0) {
+    const section = makeSection('SPECIFICATIONS', 'badge-spec', '03');
+    const body = section.querySelector('.section-body');
+    const table = document.createElement('table');
+    table.className = 'spec-table';
+    data.specs.forEach(s => {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `<td>${escHtml(s.key)}</td><td>${escHtml(s.value)}</td>`;
+      table.appendChild(tr);
+    });
+    body.appendChild(table);
+
+    if (data.documents && data.documents.length > 0) {
+      const docTitle = document.createElement('h3');
+      docTitle.textContent = 'Documents';
+      body.appendChild(docTitle);
+      data.documents.forEach(doc => {
+        const row = document.createElement('div');
+        row.className = 'cc-row';
+        row.innerHTML = `<span class="cc-icon">⇩</span>${doc.url
+          ? `<a href="${escHtml(doc.url)}" target="_blank">${escHtml(doc.title || doc.type)}</a>`
+          : escHtml(doc.title || doc.type)}
+          <span style="color:var(--text-dim);font-size:10px;margin-left:4px">[${escHtml(doc.type)}]</span>`;
+        body.appendChild(row);
+      });
+    }
+    container.appendChild(section);
+  }
+
+  // ── 4. Alternates ──
+  if (data.alternates && data.alternates.length > 0) {
+    const section = makeSection('CROSS-REFERENCES & ALTERNATES', 'badge-alt', '04');
+    const body = section.querySelector('.section-body');
+    data.alternates.forEach(a => {
+      const row = document.createElement('div');
+      row.style.cssText = 'display:flex;gap:12px;padding:8px 0;border-bottom:1px solid var(--border);align-items:flex-start;';
+      row.innerHTML = `
+        <div style="flex:1">
+          <span style="font-family:var(--mono);font-size:13px;color:var(--text-bright)">${escHtml(a.model||'—')}</span>
+          <span style="font-family:var(--mono);font-size:10px;color:var(--text-dim);margin-left:8px">${escHtml(a.manufacturer||'')}</span>
+        </div>
+        <div style="font-family:var(--mono);font-size:10px;color:var(--text-dim);text-align:right;max-width:50%">${escHtml(a.notes||'')}</div>`;
+      body.appendChild(row);
+    });
+    container.appendChild(section);
+  }
+
+  // ── Sourcing Notes ──
+  if (data.sourcing_notes) {
+    const note = document.createElement('div');
+    note.style.cssText = 'background:var(--surface);border:1px solid var(--amber-dim);border-left:3px solid var(--amber);border-radius:3px;padding:14px 18px;font-family:var(--mono);font-size:12px;color:var(--text);line-height:1.7;';
+    note.innerHTML = `<span style="color:var(--amber);letter-spacing:0.2em;font-size:10px;display:block;margin-bottom:6px">⚑ SOURCING NOTES</span>${escHtml(data.sourcing_notes)}`;
+    container.appendChild(note);
+  }
+}
+
+// ─── HELPERS ─────────────────────────────────────────────────────────────────
+function makeSection(title, badgeClass, num) {
+  const sec = document.createElement('div');
+  sec.className = 'result-section';
+  sec.style.animationDelay = `${num * 0.08}s`;
+  sec.innerHTML = `
+    <div class="section-header">
+      ${num ? `<span class="section-badge ${badgeClass}">${num}</span>` : ''}
+      <span class="section-title">${title}</span>
+    </div>
+    <div class="section-body"></div>`;
+  return sec;
+}
+
+function escHtml(str) {
+  if (!str) return '';
+  return String(str)
+    .replace(/&/g,'&amp;')
+    .replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;');
+}
+
+function truncUrl(url) {
+  try {
+    const u = new URL(url);
+    return u.hostname.replace('www.','');
+  } catch { return url; }
+}
+
+// ─── ENTER KEY ───────────────────────────────────────────────────────────────
+document.getElementById('partInput').addEventListener('keydown', e => {
+  if (e.key === 'Enter') runSearch();
+});
+document.getElementById('contextInput').addEventListener('keydown', e => {
+  if (e.key === 'Enter') runSearch();
+});
+document.getElementById('loginEmail').addEventListener('keydown', e => {
+  if (e.key === 'Enter') sendOtpCode();
+});
+// Close modal on overlay click
+document.getElementById('loginModal').addEventListener('click', e => {
+  if (e.target === e.currentTarget) closeLoginModal();
+});
+</script>
+</body>
+</html>

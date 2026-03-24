@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm install:*)",
+      "Bash(timeout 5 node server.js)",
+      "Bash(ANTHROPIC_API_KEY=test-key timeout 5 node server.js)",
+      "Bash(ANTHROPIC_API_KEY=test-key PORT=3099 timeout 4 node server.js)"
+    ]
+  }
+}
