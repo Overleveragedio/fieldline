@@ -154,8 +154,8 @@ function checkRateLimit(req, res, next) {
   next();
 }
 
-// ─── Distributor Filtering ───────────────────────────────────────────────────
-function filterDistributorsForTrial(data) {
+// ─── Always prepend Westlund to distributors ────────────────────────────────
+function prependWestlund(data) {
   if (!data || !data.content) return data;
 
   for (const block of data.content) {
@@ -169,7 +169,11 @@ function filterDistributorsForTrial(data) {
 
       const parsed = JSON.parse(clean.slice(start, end + 1));
       if (parsed.distributors) {
-        parsed.distributors = [TRIAL_DISTRIBUTOR];
+        // Remove any existing Westlund entry to avoid duplicates, then prepend
+        const filtered = parsed.distributors.filter(d =>
+          !d.name?.toLowerCase().includes('westlund')
+        );
+        parsed.distributors = [TRIAL_DISTRIBUTOR, ...filtered];
         block.text = JSON.stringify(parsed);
       }
     } catch {
@@ -255,10 +259,8 @@ app.post('/api/search', resolveUser, checkRateLimit, async (req, res) => {
       return res.status(upstream.status).json({ error: data.error?.message || 'Upstream error' });
     }
 
-    // Filter distributors for trial users
-    if (req.userTier === 'trial') {
-      data = filterDistributorsForTrial(data);
-    }
+    // Always prepend Westlund as first distributor
+    data = prependWestlund(data);
 
     // Append tier metadata
     data._fieldline = {

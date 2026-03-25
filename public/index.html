@@ -940,6 +940,104 @@
     margin-bottom: 20px;
     line-height: 1.6;
   }
+
+  /* ─── MOBILE RESPONSIVE ─── */
+  @media (max-width: 768px) {
+    header {
+      padding: 0 16px;
+    }
+
+    main {
+      padding: 24px 12px 60px;
+    }
+
+    .hero-desc {
+      font-size: 13px;
+    }
+
+    .input-body {
+      padding: 16px;
+    }
+
+    .input-row {
+      flex-direction: column;
+    }
+
+    .field-group {
+      flex: none !important;
+      width: 100%;
+    }
+
+    .contact-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .spec-table {
+      display: block;
+      overflow-x: auto;
+    }
+
+    .trial-banner {
+      flex-wrap: wrap;
+      font-size: 10px;
+      padding: 8px 12px;
+      gap: 6px;
+    }
+
+    .modal-box {
+      padding: 24px 16px;
+    }
+
+    .result-section {
+      padding: 16px;
+    }
+  }
+
+  @media (max-width: 480px) {
+    header {
+      padding: 0 10px;
+    }
+
+    .logo-sub {
+      display: none;
+    }
+
+    main {
+      padding: 16px 8px 40px;
+    }
+
+    .mode-tab {
+      font-size: 9px;
+      padding: 10px 8px;
+      gap: 4px;
+    }
+
+    .input-body {
+      padding: 12px;
+    }
+
+    .field-input, .field-select {
+      font-size: 13px;
+      padding: 10px 12px;
+    }
+
+    .btn-search {
+      font-size: 12px;
+      padding: 12px;
+    }
+
+    .hero-title {
+      font-size: 28px;
+    }
+
+    .cc-row {
+      font-size: 10px;
+    }
+
+    .spec-table {
+      font-size: 11px;
+    }
+  }
 </style>
 </head>
 <body>
@@ -1799,17 +1897,6 @@ function renderResults(rawText) {
       grid.appendChild(card);
     });
     body.appendChild(grid);
-
-    // Show locked overlay for trial users
-    if (userTier !== 'paid') {
-      const locked = document.createElement('div');
-      locked.className = 'locked-overlay';
-      locked.innerHTML = `
-        <div class="locked-icon">🔒</div>
-        <div class="locked-text">Full distributor list with all contacts is available on the paid plan.</div>
-        <button class="btn-upgrade" onclick="handleUpgrade()">UNLOCK ALL DISTRIBUTORS</button>`;
-      body.appendChild(locked);
-    }
 
     container.appendChild(section);
   }
