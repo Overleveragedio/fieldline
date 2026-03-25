@@ -2081,6 +2081,7 @@ function makeSection(title, badgeClass, num) {
 function escHtml(str) {
   if (!str) return '';
   return String(str)
+    .replace(/<cite[^>]*>|<\/cite>/gi, '')
     .replace(/&/g,'&amp;')
     .replace(/</g,'&lt;')
     .replace(/>/g,'&gt;')
