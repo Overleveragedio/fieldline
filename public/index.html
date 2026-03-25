@@ -554,7 +554,7 @@
 
   .cc-name {
     font-family: var(--display);
-    font-size: 14px;
+    font-size: 16px;
     font-weight: 600;
     color: var(--text-bright);
     letter-spacing: 0.04em;
@@ -563,9 +563,9 @@
 
   .cc-role {
     font-family: var(--mono);
-    font-size: 10px;
-    color: var(--text-dim);
-    letter-spacing: 0.15em;
+    font-size: 12px;
+    color: var(--text);
+    letter-spacing: 0.1em;
     text-transform: uppercase;
     margin-bottom: 10px;
   }
@@ -574,26 +574,27 @@
     display: flex;
     align-items: center;
     gap: 8px;
-    margin-bottom: 4px;
-    font-family: var(--mono);
-    font-size: 11px;
-    color: var(--text);
+    margin-bottom: 6px;
+    font-family: var(--body);
+    font-size: 13px;
+    color: var(--text-bright);
+    line-height: 1.4;
   }
 
-  .cc-icon { color: var(--text-dim); width: 14px; }
+  .cc-icon { color: var(--text-dim); width: 16px; }
 
   /* Spec table */
   .spec-table {
     width: 100%;
     border-collapse: collapse;
-    font-family: var(--mono);
-    font-size: 12px;
+    font-family: var(--body);
+    font-size: 14px;
   }
 
   .spec-table tr { border-bottom: 1px solid var(--border); }
   .spec-table tr:last-child { border-bottom: none; }
-  .spec-table td { padding: 8px 0; vertical-align: top; }
-  .spec-table td:first-child { color: var(--text-dim); width: 40%; padding-right: 16px; }
+  .spec-table td { padding: 10px 0; vertical-align: top; line-height: 1.4; }
+  .spec-table td:first-child { color: var(--text); width: 40%; padding-right: 16px; }
   .spec-table td:last-child { color: var(--text-bright); }
 
   /* Part number display */
@@ -1122,12 +1123,51 @@
           <div class="field-group" style="flex:1">
             <label class="field-label">Your Region</label>
             <select class="field-select" id="regionSelect">
-              <option>Western US</option>
-              <option>Eastern US</option>
-              <option>Southern US</option>
-              <option>Midwest US</option>
-              <option>Canada</option>
-              <option>Worldwide</option>
+              <optgroup label="British Columbia">
+                <option>BC — Vancouver</option>
+                <option>BC — Maple Ridge</option>
+                <option>BC — Surrey</option>
+                <option>BC — Victoria</option>
+                <option>BC — Kelowna</option>
+                <option>BC — Prince George</option>
+              </optgroup>
+              <optgroup label="Alberta">
+                <option>AB — Calgary</option>
+                <option>AB — Edmonton</option>
+                <option>AB — Red Deer</option>
+                <option>AB — Fort McMurray</option>
+              </optgroup>
+              <optgroup label="Saskatchewan">
+                <option>SK — Saskatoon</option>
+                <option>SK — Regina</option>
+              </optgroup>
+              <optgroup label="Manitoba">
+                <option>MB — Winnipeg</option>
+                <option>MB — Brandon</option>
+              </optgroup>
+              <optgroup label="Ontario">
+                <option>ON — Toronto</option>
+                <option>ON — Ottawa</option>
+                <option>ON — Hamilton</option>
+                <option>ON — London</option>
+                <option>ON — Sudbury</option>
+                <option>ON — Thunder Bay</option>
+              </optgroup>
+              <optgroup label="Quebec">
+                <option>QC — Montreal</option>
+                <option>QC — Quebec City</option>
+              </optgroup>
+              <optgroup label="Atlantic">
+                <option>NB — Saint John</option>
+                <option>NS — Halifax</option>
+                <option>NL — St. John's</option>
+                <option>PE — Charlottetown</option>
+              </optgroup>
+              <optgroup label="Northern">
+                <option>NT — Yellowknife</option>
+                <option>YT — Whitehorse</option>
+                <option>NU — Iqaluit</option>
+              </optgroup>
             </select>
           </div>
           <button class="btn-search" id="searchBtn" onclick="runSearch()">
@@ -1160,12 +1200,51 @@
           <div class="field-group" style="max-width:180px">
             <label class="field-label">Your Region</label>
             <select class="field-select" id="imageRegion">
-              <option>Western US</option>
-              <option>Eastern US</option>
-              <option>Southern US</option>
-              <option>Midwest US</option>
-              <option>Canada</option>
-              <option>Worldwide</option>
+              <optgroup label="British Columbia">
+                <option>BC — Vancouver</option>
+                <option>BC — Maple Ridge</option>
+                <option>BC — Surrey</option>
+                <option>BC — Victoria</option>
+                <option>BC — Kelowna</option>
+                <option>BC — Prince George</option>
+              </optgroup>
+              <optgroup label="Alberta">
+                <option>AB — Calgary</option>
+                <option>AB — Edmonton</option>
+                <option>AB — Red Deer</option>
+                <option>AB — Fort McMurray</option>
+              </optgroup>
+              <optgroup label="Saskatchewan">
+                <option>SK — Saskatoon</option>
+                <option>SK — Regina</option>
+              </optgroup>
+              <optgroup label="Manitoba">
+                <option>MB — Winnipeg</option>
+                <option>MB — Brandon</option>
+              </optgroup>
+              <optgroup label="Ontario">
+                <option>ON — Toronto</option>
+                <option>ON — Ottawa</option>
+                <option>ON — Hamilton</option>
+                <option>ON — London</option>
+                <option>ON — Sudbury</option>
+                <option>ON — Thunder Bay</option>
+              </optgroup>
+              <optgroup label="Quebec">
+                <option>QC — Montreal</option>
+                <option>QC — Quebec City</option>
+              </optgroup>
+              <optgroup label="Atlantic">
+                <option>NB — Saint John</option>
+                <option>NS — Halifax</option>
+                <option>NL — St. John's</option>
+                <option>PE — Charlottetown</option>
+              </optgroup>
+              <optgroup label="Northern">
+                <option>NT — Yellowknife</option>
+                <option>YT — Whitehorse</option>
+                <option>NU — Iqaluit</option>
+              </optgroup>
             </select>
           </div>
           <button class="btn-search" id="imageSearchBtn" onclick="runImageSearch()">
@@ -1899,7 +1978,7 @@ function renderResults(rawText) {
         ${d.phone ? `<div class="cc-row"><span class="cc-icon">☎</span>${escHtml(d.phone)}</div>` : ''}
         ${d.email ? `<div class="cc-row"><span class="cc-icon">✉</span><a href="mailto:${escHtml(d.email)}">${escHtml(d.email)}</a></div>` : ''}
         ${d.website ? `<div class="cc-row"><span class="cc-icon">⌂</span><a href="${escHtml(d.website)}" target="_blank">${escHtml(truncUrl(d.website))}</a></div>` : ''}
-        ${d.notes ? `<div style="margin-top:8px;font-family:var(--mono);font-size:10px;color:var(--text-dim);line-height:1.5">${escHtml(d.notes)}</div>` : ''}`;
+        ${d.notes ? `<div style="margin-top:8px;font-family:var(--body);font-size:12px;color:var(--text);line-height:1.5">${escHtml(d.notes)}</div>` : ''}`;
       grid.appendChild(card);
     });
     body.appendChild(grid);
@@ -1923,7 +2002,7 @@ function renderResults(rawText) {
       ${m.website ? `<div class="cc-row"><span class="cc-icon">⌂</span><a href="${escHtml(m.website)}" target="_blank">${escHtml(truncUrl(m.website))}</a></div>` : ''}
       ${m.quote_portal ? `<div class="cc-row"><span class="cc-icon">✎</span><a href="${escHtml(m.quote_portal)}" target="_blank">Quote Request Portal</a></div>` : ''}
       ${m.rep_locator ? `<div class="cc-row"><span class="cc-icon">◎</span><a href="${escHtml(m.rep_locator)}" target="_blank">Find a Rep / Distributor</a></div>` : ''}
-      ${m.notes ? `<div style="margin-top:8px;font-family:var(--mono);font-size:10px;color:var(--text-dim);line-height:1.5">${escHtml(m.notes)}</div>` : ''}`;
+      ${m.notes ? `<div style="margin-top:8px;font-family:var(--body);font-size:12px;color:var(--text);line-height:1.5">${escHtml(m.notes)}</div>` : ''}`;
     body.appendChild(card);
     container.appendChild(section);
   }
