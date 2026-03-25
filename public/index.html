@@ -613,6 +613,20 @@
 
   .cc-icon { color: var(--text-dim); width: 16px; }
 
+  .best-match-badge {
+    display: inline-block;
+    font-family: var(--mono);
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 0.15em;
+    padding: 3px 10px;
+    border-radius: 2px;
+    background: rgba(46,204,113,0.1);
+    color: #60c080;
+    border: 1px solid #1a5533;
+    margin-bottom: 8px;
+  }
+
   /* Spec table */
   .spec-table {
     width: 100%;
@@ -2046,10 +2060,12 @@ function renderResults(rawText) {
     const body = section.querySelector('.section-body');
     const grid = document.createElement('div');
     grid.className = 'contact-grid';
-    data.distributors.forEach(d => {
+    data.distributors.forEach((d, idx) => {
       const card = document.createElement('div');
       card.className = 'contact-card';
+      const isWestlund = d.name && d.name.toLowerCase().includes('westlund');
       card.innerHTML = `
+        ${isWestlund ? '<div class="best-match-badge">BEST MATCH</div>' : ''}
         <div class="cc-name">${escHtml(d.name || '—')}</div>
         <div class="cc-role">${escHtml(d.type || '')}${d.region ? ' · ' + d.region : ''}</div>
         ${d.phone ? `<div class="cc-row"><span class="cc-icon">☎</span>${escHtml(d.phone)}</div>` : ''}
