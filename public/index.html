@@ -1533,26 +1533,13 @@ function updateAuthUI() {
   const trialBanner = document.getElementById('trialBanner');
 
   if (authToken && userEmail) {
-    // Logged in
-    btnSignIn.style.display = 'none';
-    btnSignOut.style.display = 'inline-block';
-    headerStatus.textContent = userEmail;
-
-    if (userTier === 'paid') {
-      trialBanner.classList.remove('visible');
-    } else {
-      trialBanner.classList.add('visible');
-      document.getElementById('searchesCount').textContent =
-        `${searchesRemaining} of 5`;
-    }
+    if (btnSignIn) btnSignIn.style.display = 'none';
+    if (btnSignOut) btnSignOut.style.display = 'inline-block';
+    if (headerStatus) headerStatus.textContent = userEmail;
   } else {
-    // Not logged in
-    btnSignIn.style.display = 'inline-block';
-    btnSignOut.style.display = 'none';
-    headerStatus.textContent = 'AI SEARCH ACTIVE';
-    trialBanner.classList.add('visible');
-    document.getElementById('searchesCount').textContent =
-      `${searchesRemaining} of 5`;
+    if (btnSignIn) btnSignIn.style.display = 'inline-block';
+    if (btnSignOut) btnSignOut.style.display = 'none';
+    if (headerStatus) headerStatus.textContent = 'AI SEARCH ACTIVE';
   }
 }
 
