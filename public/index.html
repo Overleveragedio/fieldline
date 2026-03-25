@@ -1849,7 +1849,13 @@ function renderResults(rawText) {
     // Find the outermost { }
     const start = clean.indexOf('{');
     const end = clean.lastIndexOf('}');
-    data = JSON.parse(clean.slice(start, end + 1));
+    const jsonStr = clean.slice(start, end + 1);
+    try {
+      data = JSON.parse(jsonStr);
+    } catch {
+      // Claude sometimes puts literal newlines in string values — collapse them
+      data = JSON.parse(jsonStr.replace(/\n/g, ' ').replace(/\s+/g, ' '));
+    }
   } catch (e) {
     // Fall back to raw display
     const section = makeSection('AI RESPONSE', 'badge-spec', '');

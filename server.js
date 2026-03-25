@@ -167,7 +167,14 @@ function prependWestlund(data) {
       const end = clean.lastIndexOf('}');
       if (start === -1 || end === -1) continue;
 
-      const parsed = JSON.parse(clean.slice(start, end + 1));
+      let jsonStr = clean.slice(start, end + 1);
+      let parsed;
+      try {
+        parsed = JSON.parse(jsonStr);
+      } catch {
+        // Claude sometimes puts literal newlines in string values — collapse them
+        parsed = JSON.parse(jsonStr.replace(/\n/g, ' ').replace(/\s+/g, ' '));
+      }
       if (parsed.distributors) {
         // Remove any existing Westlund entry to avoid duplicates, then prepend
         const filtered = parsed.distributors.filter(d =>
