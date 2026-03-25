@@ -189,6 +189,36 @@
 
   .input-body { padding: 24px; }
 
+  .category-tabs {
+    display: flex;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .category-tab {
+    flex: 1;
+    padding: 10px 16px;
+    font-family: var(--display);
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s;
+    border-bottom: 2px solid transparent;
+    margin-bottom: -1px;
+  }
+
+  .category-tab:hover { color: var(--text); background: var(--surface2); }
+
+  .category-tab.active {
+    color: var(--steel);
+    border-bottom-color: var(--steel);
+    background: rgba(74,111,165,0.08);
+  }
+
   /* Text mode */
   .text-input-wrap {
     display: flex;
@@ -1085,6 +1115,15 @@
       </button>
     </div>
 
+    <div class="category-tabs">
+      <button class="category-tab active" id="catValves" onclick="switchCategory('valves')">
+        Valves
+      </button>
+      <button class="category-tab" id="catPipe" onclick="switchCategory('pipe')">
+        Pipe &amp; Fittings
+      </button>
+    </div>
+
     <div class="input-body">
       <!-- Text mode -->
       <div id="modeText" class="text-input-wrap">
@@ -1096,22 +1135,7 @@
           <div class="field-group" style="flex:1">
             <label class="field-label">Product Type</label>
             <select class="field-select" id="typeSelect">
-              <option value="">— Unknown —</option>
-              <option>Ball Valve</option>
-              <option>Gate Valve</option>
-              <option>Globe Valve</option>
-              <option>Check Valve</option>
-              <option>Butterfly Valve</option>
-              <option>Needle Valve</option>
-              <option>Plug Valve</option>
-              <option>Relief Valve</option>
-              <option>Control Valve</option>
-              <option>Solenoid Valve</option>
-              <option>Pipe Fitting</option>
-              <option>Flange</option>
-              <option>Strainer / Filter</option>
-              <option>Actuator</option>
-              <option>Other</option>
+              <!-- Populated by switchCategory() -->
             </select>
           </div>
         </div>
@@ -1340,6 +1364,57 @@ function switchMode(mode) {
   document.getElementById('modeImage').style.display = mode === 'image' ? 'block' : 'none';
 }
 
+// ─── CATEGORY SWITCHING ──────────────────────────────────────────────────────
+let currentCategory = 'valves';
+
+const categoryOptions = {
+  valves: [
+    '— Unknown —',
+    'Ball Valve',
+    'Gate Valve',
+    'Globe Valve',
+    'Check Valve',
+    'Butterfly Valve',
+    'Needle Valve',
+    'Plug Valve',
+    'Relief Valve',
+    'Control Valve',
+    'Solenoid Valve',
+    'Actuator',
+    'Strainer / Filter',
+    'Other',
+  ],
+  pipe: [
+    '— Unknown —',
+    'Pipe Fitting',
+    'Flange',
+    'Elbow',
+    'Tee',
+    'Reducer',
+    'Coupling',
+    'Union',
+    'Cap / Plug',
+    'Nipple',
+    'Strainer / Filter',
+    'Other',
+  ],
+};
+
+function switchCategory(cat) {
+  currentCategory = cat;
+  document.getElementById('catValves').classList.toggle('active', cat === 'valves');
+  document.getElementById('catPipe').classList.toggle('active', cat === 'pipe');
+
+  const sel = document.getElementById('typeSelect');
+  sel.innerHTML = '';
+  categoryOptions[cat].forEach(opt => {
+    const o = document.createElement('option');
+    o.textContent = opt;
+    if (opt.startsWith('—')) o.value = '';
+    sel.appendChild(o);
+  });
+}
+
 // ─── IMAGE HANDLING ───────────────────────────────────────────────────────────
 function handleFile(event) {
   const file = event.target.files[0];
@@ -1413,6 +1488,7 @@ function addToHistory(query) {
 }
 
 renderHistory();
+switchCategory('valves'); // Initialize product type dropdown
 
 // ─── PRIVY AUTH ──────────────────────────────────────────────────────────────
 // We use Privy's REST-style OTP flow (works without React SDK).
@@ -1800,7 +1876,8 @@ async function runSearch() {
   const context = document.getElementById('contextInput').value.trim();
   const region = document.getElementById('regionSelect').value;
 
-  let userMsg = `Find sourcing information for this industrial component:\n\nPart/Model Number: ${partNum}`;
+  const categoryLabel = currentCategory === 'valves' ? 'Valves' : 'Pipe & Fittings';
+  let userMsg = `Find sourcing information for this industrial component:\n\nCategory: ${categoryLabel}\nPart/Model Number: ${partNum}`;
   if (productType) userMsg += `\nProduct Type: ${productType}`;
   if (context) userMsg += `\nAdditional Context: ${context}`;
   userMsg += `\nPreferred Region for Distributors: ${region}`;
