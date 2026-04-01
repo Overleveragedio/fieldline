@@ -796,6 +796,63 @@
     border-color: var(--danger);
   }
 
+  /* ─── AD TICKER ─── */
+  .ad-ticker {
+    overflow: hidden;
+    background: linear-gradient(90deg, rgba(240,165,0,0.08), rgba(240,165,0,0.04), rgba(240,165,0,0.08));
+    border-bottom: 1px solid rgba(240,165,0,0.15);
+    white-space: nowrap;
+    position: relative;
+  }
+
+  .ad-ticker::before,
+  .ad-ticker::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 60px;
+    z-index: 2;
+    pointer-events: none;
+  }
+
+  .ad-ticker::before {
+    left: 0;
+    background: linear-gradient(90deg, var(--bg), transparent);
+  }
+
+  .ad-ticker::after {
+    right: 0;
+    background: linear-gradient(270deg, var(--bg), transparent);
+  }
+
+  .ad-ticker-track {
+    display: inline-flex;
+    align-items: center;
+    gap: 40px;
+    padding: 8px 0;
+    animation: ticker-scroll 30s linear infinite;
+  }
+
+  .ad-ticker-item {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--amber);
+    letter-spacing: 0.05em;
+    flex-shrink: 0;
+  }
+
+  .ad-ticker-sep {
+    font-size: 8px;
+    color: var(--amber-dim);
+    flex-shrink: 0;
+  }
+
+  @keyframes ticker-scroll {
+    0% { transform: translateX(0); }
+    100% { transform: translateX(-50%); }
+  }
+
   /* ─── TRIAL BANNER ─── */
   .trial-banner {
     display: none;
@@ -1118,6 +1175,20 @@
     <button class="btn-auth signout" id="btnSignOut" onclick="signOut()" style="display:none">SIGN OUT</button>
   </div>
 </header>
+
+<!-- Ad ticker -->
+<div class="ad-ticker">
+  <div class="ad-ticker-track">
+    <span class="ad-ticker-item">Grooving systems are taking over — reach out to your nearest Westlund for more information on Victaulic.</span>
+    <span class="ad-ticker-sep">★</span>
+    <span class="ad-ticker-item">Grooving systems are taking over — reach out to your nearest Westlund for more information on Victaulic.</span>
+    <span class="ad-ticker-sep">★</span>
+    <span class="ad-ticker-item">Grooving systems are taking over — reach out to your nearest Westlund for more information on Victaulic.</span>
+    <span class="ad-ticker-sep">★</span>
+    <span class="ad-ticker-item">Grooving systems are taking over — reach out to your nearest Westlund for more information on Victaulic.</span>
+    <span class="ad-ticker-sep">★</span>
+  </div>
+</div>
 
 <!-- Trial banner (hidden until Privy/LemonSqueezy integration) -->
 <div class="trial-banner" id="trialBanner" style="display:none !important">
