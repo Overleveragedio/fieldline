@@ -30,6 +30,19 @@ db.exec(`
     search_count INTEGER DEFAULT 0,
     PRIMARY KEY (ip_address, search_date)
   );
+
+  CREATE TABLE IF NOT EXISTS search_logs (
+    id              INTEGER PRIMARY KEY AUTOINCREMENT,
+    ip_address      TEXT,
+    user_tier       TEXT,
+    search_query    TEXT NOT NULL,
+    part_number     TEXT,
+    product_type    TEXT,
+    category        TEXT,
+    region          TEXT,
+    ai_response     TEXT,
+    created_at      DATETIME DEFAULT CURRENT_TIMESTAMP
+  );
 `);
 
 // ─── Prepared Statements ─────────────────────────────────────────────────────
@@ -65,6 +78,23 @@ const upsertRateLimit = db.prepare(`
     search_count = search_count + 1
 `);
 
+const insertSearchLog = db.prepare(`
+  INSERT INTO search_logs (ip_address, user_tier, search_query, part_number, product_type, category, region, ai_response)
+  VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+`);
+
+const getRecentSearches = db.prepare(`
+  SELECT id, ip_address, user_tier, search_query, part_number, product_type, category, region, created_at,
+         LENGTH(ai_response) as response_size
+  FROM search_logs
+  ORDER BY created_at DESC
+  LIMIT ?
+`);
+
+const getSearchLogById = db.prepare(`
+  SELECT * FROM search_logs WHERE id = ?
+`);
+
 // ─── Exports ─────────────────────────────────────────────────────────────────
 module.exports = {
   db,
@@ -73,4 +103,7 @@ module.exports = {
   updateSubscription,
   getRateLimit,
   upsertRateLimit,
+  insertSearchLog,
+  getRecentSearches,
+  getSearchLogById,
 };

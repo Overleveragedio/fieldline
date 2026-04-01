@@ -12,7 +12,7 @@ const fetch    = require('node-fetch');
 const path     = require('path');
 const crypto   = require('crypto');
 const { createRemoteJWKSet, jwtVerify } = require('jose');
-const { getUser, upsertUser, updateSubscription, getRateLimit, upsertRateLimit } = require('./db');
+const { getUser, upsertUser, updateSubscription, getRateLimit, upsertRateLimit, insertSearchLog, getRecentSearches, getSearchLogById } = require('./db');
 
 const app  = express();
 const PORT = process.env.PORT || 3000;
@@ -34,16 +34,61 @@ const PRIVY_JWKS = PRIVY_APP_ID
   ? createRemoteJWKSet(new URL(`https://auth.privy.io/api/v1/apps/${PRIVY_APP_ID}/.well-known/jwks.json`))
   : null;
 
-// Hardcoded trial distributor
-const TRIAL_DISTRIBUTOR = {
-  name: 'Westlund Maple Ridge',
-  type: 'Authorized Distributor',
-  region: 'BC, Canada',
-  phone: null,
-  email: 'insidesales873@westlundpvf.com',
-  website: null,
-  notes: 'Address: 20180 115A Ave, Maple Ridge, BC'
+// Westlund locations mapped by region
+const WESTLUND_LOCATIONS = {
+  // British Columbia
+  'BC — Vancouver':     { name: 'Westlund Vancouver (Surrey)', region: 'BC, Canada', phone: '604-882-5972', email: 'Vancouver@WestlundPVF.com', website: 'westlundpvf.com', notes: 'Address: 9714-192 Street, Surrey, BC V4N 4C6' },
+  'BC — Maple Ridge':   { name: 'Westlund Maple Ridge', region: 'BC, Canada', phone: '604-882-5972', email: 'insidesales873@westlundpvf.com', website: 'westlundpvf.com', notes: 'Address: 20180 115A Ave, Maple Ridge, BC V2X 0Z4' },
+  'BC — Surrey':        { name: 'Westlund Vancouver (Surrey)', region: 'BC, Canada', phone: '604-882-5972', email: 'Vancouver@WestlundPVF.com', website: 'westlundpvf.com', notes: 'Address: 9714-192 Street, Surrey, BC V4N 4C6' },
+  'BC — Victoria':      { name: 'Westlund Vancouver Island', region: 'BC, Canada', phone: '250-746-0904', email: 'VancouverIsland@WestlundPVF.com', website: 'westlundpvf.com', notes: 'Address: 3-3107 Henry Road, Chemainus, BC V0R 1K4' },
+  'BC — Kelowna':       { name: 'Westlund Kamloops', region: 'BC, Canada', phone: '604-882-5972', email: 'Vancouver@WestlundPVF.com', website: 'westlundpvf.com', notes: 'Serving interior BC — Contact for Kelowna area service' },
+  'BC — Prince George': { name: 'Westlund Fort St. John', region: 'BC, Canada', phone: '250-785-6642', email: 'FortStJohn@WestlundPVF.com', website: 'westlundpvf.com', notes: 'Address: 10709 Alaska Road, Fort St. John, BC V1J 5P4 — Serving Northern BC' },
+
+  // Alberta
+  'AB — Calgary':       { name: 'Westlund Calgary', region: 'AB, Canada', phone: '403-215-7473', email: 'calgary@westlundpvf.com', website: 'westlundpvf.com', notes: 'Address: Bay 35, 4216-54 Ave SE, Calgary, AB T2C 2E3' },
+  'AB — Edmonton':      { name: 'Westlund Edmonton (Nisku)', region: 'AB, Canada', phone: '780-463-7473', email: 'edmontonorders@westlundpvf.com', website: 'westlundpvf.com', notes: 'Address: 1130-34 Ave, Unit 1, Nisku, AB T9E 1K7' },
+  'AB — Red Deer':      { name: 'Westlund Calgary', region: 'AB, Canada', phone: '403-215-7473', email: 'calgary@westlundpvf.com', website: 'westlundpvf.com', notes: 'Address: Bay 35, 4216-54 Ave SE, Calgary, AB T2C 2E3 — Serving Central Alberta' },
+  'AB — Fort McMurray': { name: 'Westlund Fort McMurray', region: 'AB, Canada', phone: '780-791-7173', email: 'FortMcMurray@WestlundPVF.com', website: 'westlundpvf.com', notes: 'Address: 205 MacDonald Crescent, Fort McMurray, AB T9H 4B3' },
+
+  // Saskatchewan
+  'SK — Saskatoon':     { name: 'Westlund Saskatoon', region: 'SK, Canada', phone: '306-652-5545', email: '677sales@WestlundPVF.com', website: 'westlundpvf.com', notes: 'Address: 803 58th Street East, Saskatoon, SK S7K 6X5' },
+  'SK — Regina':        { name: 'Westlund Regina', region: 'SK, Canada', phone: '306-569-5249', email: '677sales@WestlundPVF.com', website: 'westlundpvf.com', notes: 'Address: 117 Hodsman Road, Regina, SK S4N 5W5' },
+
+  // Manitoba
+  'MB — Winnipeg':      { name: 'Westlund Winnipeg', region: 'MB, Canada', phone: '204-925-8444', email: 'winnipeg@westlundpvf.com', website: 'westlundpvf.com', notes: 'Serving Manitoba' },
+  'MB — Brandon':       { name: 'Westlund Winnipeg', region: 'MB, Canada', phone: '204-925-8444', email: 'winnipeg@westlundpvf.com', website: 'westlundpvf.com', notes: 'Serving Manitoba — Nearest branch in Winnipeg' },
+
+  // Ontario
+  'ON — Toronto':       { name: 'Westlund Toronto', region: 'ON, Canada', phone: '905-624-4575', email: 'toronto@westlundpvf.com', website: 'westlundpvf.com', notes: 'Address: 5188A Everest Drive, Mississauga, ON L4W 2R4' },
+  'ON — Ottawa':        { name: 'Westlund Toronto', region: 'ON, Canada', phone: '905-624-4575', email: 'toronto@westlundpvf.com', website: 'westlundpvf.com', notes: 'Serving Eastern Ontario — Contact Toronto branch' },
+  'ON — Hamilton':      { name: 'Westlund Niagara', region: 'ON, Canada', phone: '905-682-9044', email: 'niagara@westlundpvf.com', website: 'westlundpvf.com', notes: 'Address: 70 Provincial Street, Welland, ON L3B 5W7' },
+  'ON — London':        { name: 'Westlund Toronto', region: 'ON, Canada', phone: '905-624-4575', email: 'toronto@westlundpvf.com', website: 'westlundpvf.com', notes: 'Serving Southwestern Ontario — Contact Toronto branch' },
+  'ON — Sudbury':       { name: 'Westlund Sudbury', region: 'ON, Canada', phone: '705-675-3626', email: 'sudbury@westlundpvf.com', website: 'westlundpvf.com', notes: 'Address: 1367 Kelly Lake Road, Unit 2, Sudbury, ON P3E 5P5' },
+  'ON — Thunder Bay':   { name: 'Westlund Sudbury', region: 'ON, Canada', phone: '705-675-3626', email: 'sudbury@westlundpvf.com', website: 'westlundpvf.com', notes: 'Serving Northern Ontario — Nearest branch in Sudbury' },
+
+  // Quebec
+  'QC — Montreal':      { name: 'Westlund Toronto', region: 'ON, Canada', phone: '905-624-4575', email: 'toronto@westlundpvf.com', website: 'westlundpvf.com', notes: 'Serving Quebec — Contact Toronto branch' },
+  'QC — Quebec City':   { name: 'Westlund Toronto', region: 'ON, Canada', phone: '905-624-4575', email: 'toronto@westlundpvf.com', website: 'westlundpvf.com', notes: 'Serving Quebec — Contact Toronto branch' },
+
+  // Atlantic
+  'NB — Saint John':    { name: 'Westlund Saint John', region: 'NB, Canada', phone: '506-652-2233', email: 'RMacPhatter@westlundpvf.com', website: 'westlundpvf.com', notes: 'Address: 1143 Bayside Dr, Saint John, NB E2J 4Y2' },
+  'NS — Halifax':       { name: 'Westlund Saint John', region: 'NB, Canada', phone: '506-652-2233', email: 'RMacPhatter@westlundpvf.com', website: 'westlundpvf.com', notes: 'Serving Atlantic Canada — Nearest branch in Saint John, NB' },
+  'NL — St. John\'s':   { name: 'Westlund Saint John', region: 'NB, Canada', phone: '506-652-2233', email: 'RMacPhatter@westlundpvf.com', website: 'westlundpvf.com', notes: 'Serving Atlantic Canada — Nearest branch in Saint John, NB' },
+  'PE — Charlottetown': { name: 'Westlund Saint John', region: 'NB, Canada', phone: '506-652-2233', email: 'RMacPhatter@westlundpvf.com', website: 'westlundpvf.com', notes: 'Serving Atlantic Canada — Nearest branch in Saint John, NB' },
+
+  // Northern
+  'NT — Yellowknife':   { name: 'Westlund Edmonton (Nisku)', region: 'AB, Canada', phone: '780-463-7473', email: 'edmontonorders@westlundpvf.com', website: 'westlundpvf.com', notes: 'Serving Northern Canada from Edmonton/Nisku' },
+  'YT — Whitehorse':    { name: 'Westlund Fort St. John', region: 'BC, Canada', phone: '250-785-6642', email: 'FortStJohn@WestlundPVF.com', website: 'westlundpvf.com', notes: 'Serving Yukon from Fort St. John, BC' },
+  'NU — Iqaluit':       { name: 'Westlund Edmonton (Nisku)', region: 'AB, Canada', phone: '780-463-7473', email: 'edmontonorders@westlundpvf.com', website: 'westlundpvf.com', notes: 'Serving Northern Canada from Edmonton/Nisku' },
 };
+
+// Default fallback
+const DEFAULT_WESTLUND = { name: 'Westlund Maple Ridge', region: 'BC, Canada', phone: '604-882-5972', email: 'insidesales873@westlundpvf.com', website: 'westlundpvf.com', notes: 'Address: 20180 115A Ave, Maple Ridge, BC V2X 0Z4' };
+
+function getWestlundForRegion(region) {
+  const loc = WESTLUND_LOCATIONS[region] || DEFAULT_WESTLUND;
+  return { type: 'Authorized Distributor', ...loc };
+}
 
 // ─── Middleware ───────────────────────────────────────────────────────────────
 app.use(cors());
@@ -155,8 +200,10 @@ function checkRateLimit(req, res, next) {
 }
 
 // ─── Always prepend Westlund to distributors ────────────────────────────────
-function prependWestlund(data) {
+function prependWestlund(data, region) {
   if (!data || !data.content) return data;
+
+  const westlund = getWestlundForRegion(region);
 
   for (const block of data.content) {
     if (block.type !== 'text') continue;
@@ -180,7 +227,7 @@ function prependWestlund(data) {
         const filtered = parsed.distributors.filter(d =>
           !d.name?.toLowerCase().includes('westlund')
         );
-        parsed.distributors = [TRIAL_DISTRIBUTOR, ...filtered];
+        parsed.distributors = [westlund, ...filtered];
         block.text = JSON.stringify(parsed);
       }
     } catch {
@@ -234,7 +281,7 @@ app.get('/api/checkout', resolveUser, (req, res) => {
 
 // ─── Anthropic proxy ──────────────────────────────────────────────────────────
 app.post('/api/search', resolveUser, checkRateLimit, async (req, res) => {
-  const { model, max_tokens, system, tools, messages } = req.body;
+  const { model, max_tokens, system, tools, messages, region } = req.body;
 
   // Basic validation
   if (!messages || !Array.isArray(messages) || messages.length === 0) {
@@ -266,8 +313,8 @@ app.post('/api/search', resolveUser, checkRateLimit, async (req, res) => {
       return res.status(upstream.status).json({ error: data.error?.message || 'Upstream error' });
     }
 
-    // Always prepend Westlund as first distributor
-    data = prependWestlund(data);
+    // Always prepend nearest Westlund as first distributor
+    data = prependWestlund(data, region);
 
     // Append tier metadata
     data._fieldline = {
@@ -276,12 +323,50 @@ app.post('/api/search', resolveUser, checkRateLimit, async (req, res) => {
       daily_limit: DAILY_SEARCH_LIMIT,
     };
 
+    // Log the search (non-blocking — don't let logging failures break the response)
+    try {
+      const userMsg = messages[0]?.content;
+      const queryText = typeof userMsg === 'string' ? userMsg : JSON.stringify(userMsg);
+
+      // Extract part number from message
+      const partMatch = queryText.match(/Part\/Model Number:\s*(.+)/i);
+      const partNumber = partMatch ? partMatch[1].trim() : null;
+
+      // Extract product type
+      const typeMatch = queryText.match(/Product Type:\s*(.+)/i);
+      const productType = typeMatch ? typeMatch[1].trim() : null;
+
+      // Extract category
+      const catMatch = queryText.match(/Category:\s*(.+)/i);
+      const category = catMatch ? catMatch[1].trim() : null;
+
+      const ip = req.ip || req.connection?.remoteAddress || 'unknown';
+      const responseText = JSON.stringify(data);
+
+      insertSearchLog.run(ip, req.userTier, queryText, partNumber, productType, category, region || null, responseText);
+    } catch (logErr) {
+      console.warn('Search log failed:', logErr.message);
+    }
+
     return res.json(data);
 
   } catch (err) {
     console.error('Proxy error:', err);
     return res.status(500).json({ error: 'Internal proxy error: ' + err.message });
   }
+});
+
+// ─── Admin: View search logs ─────────────────────────────────────────────────
+app.get('/api/admin/logs', (req, res) => {
+  const limit = Math.min(parseInt(req.query.limit) || 100, 500);
+  const logs = getRecentSearches.all(limit);
+  return res.json({ count: logs.length, logs });
+});
+
+app.get('/api/admin/logs/:id', (req, res) => {
+  const log = getSearchLogById.get(req.params.id);
+  if (!log) return res.status(404).json({ error: 'Log not found' });
+  return res.json(log);
 });
 
 // ─── Catch-all → serve frontend ───────────────────────────────────────────────
