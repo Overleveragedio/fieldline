@@ -79,6 +79,31 @@
     text-transform: uppercase;
   }
 
+  .header-nav {
+    display: flex;
+    align-items: center;
+    gap: 28px;
+  }
+
+  .header-nav a {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    text-decoration: none;
+    color: var(--text-dim);
+    padding: 6px 0;
+    border-bottom: 2px solid transparent;
+    transition: all 0.2s;
+  }
+
+  .header-nav a:hover { color: var(--text); }
+
+  .header-nav a.active {
+    color: var(--amber);
+    border-bottom-color: var(--amber);
+  }
+
   .header-status {
     display: flex;
     align-items: center;
@@ -1068,6 +1093,18 @@
       padding: 0 16px;
     }
 
+    .header-nav {
+      gap: 16px;
+    }
+
+    .header-nav a {
+      font-size: 9px;
+    }
+
+    .logo-sub {
+      display: none;
+    }
+
     main {
       padding: 24px 12px 60px;
     }
@@ -1177,6 +1214,10 @@
     <span class="logo-mark">Searchtosupply</span>
     <span class="logo-sub">Industrial Sourcing Intelligence</span>
   </div>
+  <nav class="header-nav">
+    <a href="/" class="active">Part Search</a>
+    <a href="/takeoff">Automated Take Offs</a>
+  </nav>
   <div class="header-auth" id="headerAuth">
     <div class="status-dot"></div>
     <span class="header-user" id="headerStatus">AI SEARCH ACTIVE</span>

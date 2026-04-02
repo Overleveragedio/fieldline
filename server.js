@@ -154,7 +154,7 @@ app.post('/api/webhooks/lemonsqueezy', express.raw({ type: 'application/json' })
   return res.status(200).json({ received: true });
 });
 
-app.use(express.json({ limit: '25mb' }));
+app.use(express.json({ limit: '50mb' }));
 app.use(express.static(path.join(__dirname, 'public')));
 
 // ─── Auth Middleware ──────────────────────────────────────────────────────────
@@ -367,6 +367,102 @@ app.get('/api/admin/logs/:id', (req, res) => {
   const log = getSearchLogById.get(req.params.id);
   if (!log) return res.status(404).json({ error: 'Log not found' });
   return res.json(log);
+});
+
+// ─── Takeoff page ────────────────────────────────────────────────────────────
+app.get('/takeoff', (_req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'takeoff.html'));
+});
+
+// ─── BOM Takeoff API ─────────────────────────────────────────────────────────
+const BOM_SYSTEM_PROMPT = `You are an industrial piping BOM (Bill of Materials) extraction system. Your job is to analyze uploaded engineering drawings (P&IDs, isometrics, spool sheets, line lists) and extract a complete material takeoff.
+
+INSTRUCTIONS:
+1. Examine ALL uploaded drawing pages carefully.
+2. Identify every tagged piping component: valves, fittings, pipe spools, flanges, gaskets, bolting, strainers, instruments, specialties.
+3. For each item, extract: tag number, quantity, size, description, material, specification, schedule/class, end connections.
+4. Group identical items and sum their quantities.
+5. If a tag or specification is partially illegible or ambiguous, include it with a note — do NOT skip it.
+6. If the drawing contains a bill of materials table, cross-reference it with your visual extraction.
+
+Return ONLY a JSON object in this exact structure — no markdown, no preamble, no explanation:
+
+{
+  "drawing_info": {
+    "title": "Drawing title or description",
+    "drawing_number": "DWG number if visible",
+    "revision": "Rev letter/number if visible",
+    "pages_processed": 1
+  },
+  "bom": [
+    {
+      "line": 1,
+      "tag": "V-101",
+      "qty": 1,
+      "size": "2\\"",
+      "description": "Ball Valve, Full Port, Flanged",
+      "material": "A105 Body / 316SS Trim",
+      "spec": "ASME B16.34",
+      "class_schedule": "Class 150",
+      "end_connections": "RF Flanged",
+      "notes": ""
+    }
+  ],
+  "extraction_notes": "Summary of any ambiguities, illegible items, or assumptions made during extraction."
+}
+
+CRITICAL RULES:
+- Extract EVERY tagged item, not just a sample.
+- Never fabricate specifications. Use null if not determinable.
+- Return ONLY the JSON object. No markdown fences, no explanation text.
+- Be thorough — a missed item costs the project money.`;
+
+app.post('/api/takeoff', resolveUser, async (req, res) => {
+  const { messages } = req.body;
+
+  if (!messages || !Array.isArray(messages) || messages.length === 0) {
+    return res.status(400).json({ error: 'messages array is required' });
+  }
+
+  try {
+    const upstream = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type':         'application/json',
+        'x-api-key':            API_KEY,
+        'anthropic-version':    '2023-06-01',
+        'anthropic-beta':       'pdfs-2024-09-25',
+      },
+      body: JSON.stringify({
+        model:      'claude-sonnet-4-20250514',
+        max_tokens: 8192,
+        system:     BOM_SYSTEM_PROMPT,
+        messages,
+      }),
+    });
+
+    let data = await upstream.json();
+
+    if (!upstream.ok) {
+      console.error('Anthropic API error (takeoff):', data);
+      return res.status(upstream.status).json({ error: data.error?.message || 'Upstream error' });
+    }
+
+    // Log the takeoff (non-blocking)
+    try {
+      const ip = req.ip || req.connection?.remoteAddress || 'unknown';
+      const responseText = JSON.stringify(data);
+      insertSearchLog.run(ip, req.userTier, 'BOM Takeoff', null, null, 'takeoff', null, responseText);
+    } catch (logErr) {
+      console.warn('Takeoff log failed:', logErr.message);
+    }
+
+    return res.json(data);
+
+  } catch (err) {
+    console.error('Takeoff proxy error:', err);
+    return res.status(500).json({ error: 'Internal proxy error: ' + err.message });
+  }
 });
 
 // ─── Catch-all → serve frontend ───────────────────────────────────────────────

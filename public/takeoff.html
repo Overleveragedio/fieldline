@@ -1,0 +1,1180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>SearchToSupply — Automated Take Offs</title>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@300;400;500;600;700;800&family=IBM+Plex+Mono:wght@300;400;500&family=Barlow:wght@300;400;500&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --bg: #0a0c0b;
+    --surface: #111412;
+    --surface2: #181c19;
+    --border: #232820;
+    --border-bright: #2e3429;
+    --amber: #f0a500;
+    --amber-dim: #7a5400;
+    --amber-glow: rgba(240,165,0,0.12);
+    --steel: #4a6fa5;
+    --steel-dim: #2a3f5f;
+    --text: #c8cfc4;
+    --text-dim: #5a6455;
+    --text-bright: #e8efe4;
+    --danger: #c0392b;
+    --success: #2ecc71;
+    --mono: 'IBM Plex Mono', monospace;
+    --display: 'Barlow Condensed', sans-serif;
+    --body: 'Barlow', sans-serif;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--body);
+    min-height: 100vh;
+    overflow-x: hidden;
+    background-image:
+      radial-gradient(ellipse 80% 60% at 50% -10%, rgba(240,165,0,0.04) 0%, transparent 70%),
+      repeating-linear-gradient(0deg, transparent, transparent 39px, rgba(255,255,255,0.015) 39px, rgba(255,255,255,0.015) 40px),
+      repeating-linear-gradient(90deg, transparent, transparent 39px, rgba(255,255,255,0.015) 39px, rgba(255,255,255,0.015) 40px);
+  }
+
+  /* ─── HEADER ─── */
+  header {
+    border-bottom: 1px solid var(--border);
+    padding: 0 32px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 56px;
+    background: rgba(10,12,11,0.9);
+    backdrop-filter: blur(8px);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+
+  .logo {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+  }
+
+  .logo-mark {
+    font-family: var(--display);
+    font-weight: 800;
+    font-size: 22px;
+    letter-spacing: 0.12em;
+    color: var(--amber);
+    text-transform: uppercase;
+  }
+
+  .logo-sub {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--text-dim);
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+  }
+
+  .header-nav {
+    display: flex;
+    align-items: center;
+    gap: 28px;
+  }
+
+  .header-nav a {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    text-decoration: none;
+    color: var(--text-dim);
+    padding: 6px 0;
+    border-bottom: 2px solid transparent;
+    transition: all 0.2s;
+  }
+
+  .header-nav a:hover { color: var(--text); }
+
+  .header-nav a.active {
+    color: var(--amber);
+    border-bottom-color: var(--amber);
+  }
+
+  .header-status {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--text-dim);
+    letter-spacing: 0.1em;
+  }
+
+  .status-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--success);
+    box-shadow: 0 0 6px var(--success);
+    animation: pulse-dot 2s infinite;
+  }
+
+  @keyframes pulse-dot {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.4; }
+  }
+
+  /* ─── MAIN LAYOUT ─── */
+  main {
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 40px 24px 80px;
+  }
+
+  /* ─── HERO ─── */
+  .hero {
+    text-align: center;
+    padding: 48px 0 40px;
+  }
+
+  .hero-eyebrow {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: var(--amber);
+    margin-bottom: 16px;
+  }
+
+  .hero-title {
+    font-family: var(--display);
+    font-size: clamp(36px, 5vw, 60px);
+    font-weight: 700;
+    color: var(--text-bright);
+    line-height: 1.05;
+    letter-spacing: 0.02em;
+    margin-bottom: 12px;
+  }
+
+  .hero-title span { color: var(--amber); }
+
+  .hero-desc {
+    font-size: 15px;
+    color: var(--text-dim);
+    max-width: 480px;
+    margin: 0 auto;
+    line-height: 1.6;
+  }
+
+  /* ─── INPUT PANEL ─── */
+  .input-panel {
+    background: var(--surface);
+    border: 1px solid var(--border-bright);
+    border-radius: 10px;
+    margin-bottom: 32px;
+    overflow: hidden;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.3);
+  }
+
+  .input-body { padding: 24px; }
+
+  /* Image mode / drop zone */
+  .image-drop-zone {
+    border: 1px dashed var(--border-bright);
+    border-radius: 8px;
+    padding: 40px 20px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s;
+    position: relative;
+    background: var(--bg);
+  }
+
+  .image-drop-zone:hover, .image-drop-zone.dragging {
+    border-color: var(--amber-dim);
+    background: var(--amber-glow);
+  }
+
+  .image-drop-zone input[type="file"] {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    cursor: pointer;
+    width: 100%;
+    height: 100%;
+  }
+
+  .drop-icon {
+    font-size: 32px;
+    margin-bottom: 10px;
+    opacity: 0.5;
+  }
+
+  .drop-title {
+    font-family: var(--display);
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 4px;
+    letter-spacing: 0.05em;
+  }
+
+  .drop-sub {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--text-dim);
+    letter-spacing: 0.1em;
+  }
+
+  /* Submit button */
+  .btn-search {
+    background: var(--amber);
+    color: #0a0c0b;
+    border: none;
+    border-radius: 6px;
+    font-family: var(--display);
+    font-weight: 700;
+    font-size: 14px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    padding: 13px 28px;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    white-space: nowrap;
+    align-self: flex-end;
+    width: 100%;
+    justify-content: center;
+    margin-top: 8px;
+  }
+
+  .btn-search:hover { background: #ffc107; transform: translateY(-1px); box-shadow: 0 4px 16px rgba(240,165,0,0.3); }
+  .btn-search:active { transform: translateY(0); }
+  .btn-search:disabled { opacity: 0.4; cursor: not-allowed; transform: none; box-shadow: none; }
+
+  /* ─── LOADING ─── */
+  .loading-panel {
+    display: none;
+    padding: 32px;
+    background: var(--surface);
+    border: 1px solid var(--border-bright);
+    border-radius: 10px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.25);
+    margin-bottom: 24px;
+  }
+
+  .loading-panel.visible { display: block; }
+
+  .loading-header {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 20px;
+  }
+
+  .spinner {
+    width: 20px;
+    height: 20px;
+    border: 2px solid var(--border-bright);
+    border-top-color: var(--amber);
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+    flex-shrink: 0;
+  }
+
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .loading-label {
+    font-family: var(--display);
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--text-bright);
+    letter-spacing: 0.05em;
+  }
+
+  .loading-steps {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .loading-step {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--text-dim);
+    transition: color 0.3s;
+  }
+
+  .loading-step.done { color: var(--success); }
+  .loading-step.active { color: var(--amber); }
+
+  .step-icon { width: 14px; text-align: center; }
+
+  /* ─── RESULTS ─── */
+  .results { display: none; flex-direction: column; gap: 28px; }
+  .results.visible { display: flex; }
+
+  .result-section {
+    background: var(--surface);
+    border: 1px solid var(--border-bright);
+    border-radius: 10px;
+    overflow: hidden;
+    animation: slide-up 0.4s ease both;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.25);
+    transition: border-color 0.2s;
+  }
+
+  .result-section:hover { border-color: #3a4035; }
+
+  @keyframes slide-up {
+    from { opacity: 0; transform: translateY(12px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .section-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 24px;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface2);
+  }
+
+  .section-badge {
+    font-family: var(--mono);
+    font-size: 9px;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    padding: 4px 10px;
+    border-radius: 4px;
+    font-weight: 500;
+  }
+
+  .badge-priority { background: rgba(240,165,0,0.15); color: var(--amber); border: 1px solid var(--amber-dim); }
+  .badge-mfr { background: rgba(74,111,165,0.15); color: #7aabde; border: 1px solid var(--steel-dim); }
+  .badge-spec { background: rgba(46,204,113,0.1); color: #60c080; border: 1px solid #1a5533; }
+  .badge-alt { background: rgba(180,120,50,0.1); color: #c08040; border: 1px solid #5a3510; }
+
+  .section-title {
+    font-family: var(--display);
+    font-size: 15px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    color: var(--text-bright);
+    text-transform: uppercase;
+  }
+
+  .section-body {
+    padding: 24px;
+    font-size: 14px;
+    line-height: 1.7;
+    color: var(--text);
+  }
+
+  .section-body h3 {
+    font-family: var(--display);
+    font-size: 14px;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--amber);
+    margin: 16px 0 8px;
+  }
+
+  .section-body h3:first-child { margin-top: 0; }
+  .section-body p { margin-bottom: 10px; }
+  .section-body p:last-child { margin-bottom: 0; }
+
+  .section-body ul, .section-body ol {
+    padding-left: 18px;
+    margin-bottom: 10px;
+  }
+
+  .section-body li { margin-bottom: 5px; }
+  .section-body strong { color: var(--text-bright); }
+
+  .section-body a {
+    color: var(--amber);
+    text-decoration: none;
+    font-family: var(--mono);
+    font-size: 12px;
+  }
+  .section-body a:hover { text-decoration: underline; }
+
+  .section-body code {
+    font-family: var(--mono);
+    font-size: 12px;
+    background: var(--bg);
+    padding: 2px 6px;
+    border-radius: 4px;
+    color: #7aabde;
+  }
+
+  /* Part number display */
+  .part-banner {
+    background: var(--bg);
+    border: 1px solid var(--border-bright);
+    border-left: 3px solid var(--amber);
+    border-radius: 8px;
+    padding: 16px 20px;
+    margin-bottom: 24px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.25);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .part-banner-label {
+    font-family: var(--mono);
+    font-size: 9px;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+  }
+
+  .part-banner-value {
+    font-family: var(--mono);
+    font-size: 16px;
+    color: var(--amber);
+    letter-spacing: 0.05em;
+  }
+
+  /* Error */
+  .error-panel {
+    display: none;
+    background: rgba(192,57,43,0.08);
+    border: 1px solid rgba(192,57,43,0.3);
+    border-radius: 8px;
+    padding: 20px 24px;
+    font-family: var(--mono);
+    font-size: 12px;
+    color: #e07060;
+    margin-bottom: 24px;
+  }
+
+  .error-panel.visible { display: block; }
+
+  /* RAW AI response fallback */
+  .raw-response {
+    font-family: var(--mono);
+    font-size: 12px;
+    line-height: 1.8;
+    color: var(--text);
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb { background: var(--border-bright); border-radius: 3px; }
+
+  /* ─── AUTH UI ─── */
+  .header-auth {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .header-user {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--text-dim);
+    letter-spacing: 0.1em;
+    max-width: 180px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  /* ─── AD TICKER ─── */
+  .ad-ticker {
+    overflow: hidden;
+    background: linear-gradient(90deg, rgba(240,165,0,0.08), rgba(240,165,0,0.04), rgba(240,165,0,0.08));
+    border-bottom: 1px solid rgba(240,165,0,0.15);
+    white-space: nowrap;
+    position: relative;
+  }
+
+  .ad-ticker::before,
+  .ad-ticker::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 60px;
+    z-index: 2;
+    pointer-events: none;
+  }
+
+  .ad-ticker::before {
+    left: 0;
+    background: linear-gradient(90deg, var(--bg), transparent);
+  }
+
+  .ad-ticker::after {
+    right: 0;
+    background: linear-gradient(270deg, var(--bg), transparent);
+  }
+
+  .ad-ticker-track {
+    display: inline-flex;
+    align-items: center;
+    gap: 40px;
+    padding: 8px 0;
+    animation: ticker-scroll 30s linear infinite;
+  }
+
+  .ad-ticker-item {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--amber);
+    letter-spacing: 0.05em;
+    flex-shrink: 0;
+  }
+
+  .ad-ticker-sep {
+    font-size: 8px;
+    color: var(--amber-dim);
+    flex-shrink: 0;
+  }
+
+  @keyframes ticker-scroll {
+    0% { transform: translateX(0); }
+    100% { transform: translateX(-50%); }
+  }
+
+  /* ─── TAKEOFF-SPECIFIC STYLES ─── */
+  .file-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin: 16px 0;
+    max-height: 300px;
+    overflow-y: auto;
+  }
+
+  .file-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 10px 14px;
+  }
+
+  .file-item-icon {
+    font-size: 24px;
+    width: 32px;
+    text-align: center;
+    flex-shrink: 0;
+  }
+
+  .file-item-info { flex: 1; }
+
+  .file-item-name {
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--text-bright);
+  }
+
+  .file-item-size {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--text-dim);
+  }
+
+  .file-item-remove {
+    background: none;
+    border: none;
+    color: var(--text-dim);
+    font-size: 16px;
+    cursor: pointer;
+    padding: 4px 8px;
+    transition: color 0.2s;
+  }
+
+  .file-item-remove:hover { color: var(--danger); }
+
+  .file-counter {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--text-dim);
+    text-align: right;
+    letter-spacing: 0.05em;
+  }
+
+  .bom-table-wrap {
+    overflow-x: auto;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+  }
+
+  .bom-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-family: var(--body);
+    font-size: 13px;
+    min-width: 900px;
+  }
+
+  .bom-table thead {
+    background: var(--surface2);
+    position: sticky;
+    top: 0;
+  }
+
+  .bom-table th {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--amber);
+    padding: 10px 12px;
+    text-align: left;
+    border-bottom: 1px solid var(--border-bright);
+    white-space: nowrap;
+  }
+
+  .bom-table td {
+    padding: 8px 12px;
+    color: var(--text);
+    border-bottom: 1px solid var(--border);
+    vertical-align: top;
+    line-height: 1.4;
+  }
+
+  .bom-table tr:last-child td { border-bottom: none; }
+
+  .bom-table tr:nth-child(even) { background: rgba(255,255,255,0.015); }
+
+  .bom-table tr:hover { background: rgba(240,165,0,0.03); }
+
+  .btn-export {
+    background: none;
+    border: 1px solid var(--amber-dim);
+    border-radius: 6px;
+    color: var(--amber);
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    padding: 10px 20px;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 16px;
+  }
+
+  .btn-export:hover {
+    background: var(--amber-glow);
+    border-color: var(--amber);
+  }
+
+  .drawing-banner {
+    background: var(--bg);
+    border: 1px solid var(--border-bright);
+    border-left: 3px solid var(--steel);
+    border-radius: 8px;
+    padding: 16px 20px;
+    margin-bottom: 20px;
+    display: flex;
+    gap: 24px;
+    flex-wrap: wrap;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.25);
+  }
+
+  .drawing-banner-item {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .drawing-banner-label {
+    font-family: var(--mono);
+    font-size: 9px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+  }
+
+  .drawing-banner-value {
+    font-family: var(--body);
+    font-size: 14px;
+    color: var(--text-bright);
+  }
+
+  .notes-panel {
+    background: rgba(240,165,0,0.04);
+    border: 1px dashed var(--amber-dim);
+    border-radius: 8px;
+    padding: 16px 20px;
+    margin-top: 20px;
+    font-family: var(--body);
+    font-size: 13px;
+    color: var(--text);
+    line-height: 1.6;
+  }
+
+  .notes-panel-title {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--amber);
+    margin-bottom: 8px;
+  }
+
+  /* ─── MOBILE RESPONSIVE ─── */
+  @media (max-width: 768px) {
+    header {
+      padding: 0 16px;
+    }
+
+    .header-nav {
+      gap: 16px;
+    }
+
+    .header-nav a {
+      font-size: 9px;
+    }
+
+    .logo-sub {
+      display: none;
+    }
+
+    main {
+      padding: 24px 12px 60px;
+    }
+
+    .hero-desc {
+      font-size: 13px;
+    }
+
+    .input-body {
+      padding: 16px;
+    }
+
+    .ad-ticker-item {
+      font-size: 9px;
+    }
+
+    .ad-ticker-track {
+      padding: 5px 0;
+      gap: 24px;
+    }
+
+    .result-section {
+      padding: 16px;
+    }
+  }
+
+  @media (max-width: 480px) {
+    header {
+      padding: 0 10px;
+    }
+
+    .logo-sub {
+      display: none;
+    }
+
+    main {
+      padding: 16px 8px 40px;
+    }
+
+    .input-body {
+      padding: 12px;
+    }
+
+    .btn-search {
+      font-size: 12px;
+      padding: 12px;
+    }
+
+    .hero-title {
+      font-size: 28px;
+    }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">
+    <span class="logo-mark">Searchtosupply</span>
+    <span class="logo-sub">Industrial Sourcing Intelligence</span>
+  </div>
+  <nav class="header-nav">
+    <a href="/">Part Search</a>
+    <a href="/takeoff" class="active">Automated Take Offs</a>
+  </nav>
+  <div class="header-auth" id="headerAuth">
+    <div class="status-dot"></div>
+    <span class="header-user">AI EXTRACTION ACTIVE</span>
+  </div>
+</header>
+
+<!-- Ad ticker -->
+<div class="ad-ticker">
+  <div class="ad-ticker-track">
+    <span class="ad-ticker-item">Grooving systems are taking over — reach out to your nearest Westlund for more information on Victaulic.</span>
+    <span class="ad-ticker-sep">★</span>
+    <span class="ad-ticker-item">Grooving systems are taking over — reach out to your nearest Westlund for more information on Victaulic.</span>
+    <span class="ad-ticker-sep">★</span>
+    <span class="ad-ticker-item">Grooving systems are taking over — reach out to your nearest Westlund for more information on Victaulic.</span>
+    <span class="ad-ticker-sep">★</span>
+    <span class="ad-ticker-item">Grooving systems are taking over — reach out to your nearest Westlund for more information on Victaulic.</span>
+    <span class="ad-ticker-sep">★</span>
+  </div>
+</div>
+
+<main>
+  <div class="hero">
+    <div class="hero-eyebrow">// AUTOMATED MATERIAL EXTRACTION</div>
+    <h1 class="hero-title">Upload Drawings.<br><span>Extract Your BOM.</span></h1>
+    <p class="hero-desc">Upload P&IDs, isometrics, or spool sheets — the AI extracts every tagged component into a complete bill of materials.</p>
+  </div>
+
+  <!-- Upload panel -->
+  <div class="input-panel">
+    <div class="input-body">
+      <div class="image-drop-zone" id="dropZone">
+        <input type="file" id="fileInput" accept="image/*,.pdf" multiple />
+        <div class="drop-icon">📐</div>
+        <div class="drop-title">Drop drawing files here or click to browse</div>
+        <div class="drop-sub">Supports PDF, JPG, PNG — up to 10 files</div>
+      </div>
+
+      <div class="file-list" id="fileList"></div>
+      <div class="file-counter" id="fileCounter">0 / 10 files</div>
+
+      <button class="btn-search" id="processBtn" onclick="processDrawings()" disabled>
+        ⌕ &nbsp;PROCESS DRAWINGS
+      </button>
+    </div>
+  </div>
+
+  <!-- Loading -->
+  <div class="loading-panel" id="loadingPanel">
+    <div class="loading-header">
+      <div class="spinner"></div>
+      <div>
+        <div class="loading-label">Processing uploaded drawings...</div>
+        <div style="font-family:var(--mono);font-size:11px;color:var(--text-dim);margin-top:4px;letter-spacing:0.03em;">This can take up to 60 seconds — we're analyzing multiple pages.</div>
+      </div>
+    </div>
+    <div class="loading-steps" id="loadingSteps">
+      <div class="loading-step active"><span class="step-icon">◉</span> Analyzing uploaded drawings...</div>
+      <div class="loading-step"><span class="step-icon">○</span> Identifying tagged components...</div>
+      <div class="loading-step"><span class="step-icon">○</span> Extracting specifications...</div>
+      <div class="loading-step"><span class="step-icon">○</span> Building material list...</div>
+    </div>
+  </div>
+
+  <!-- Error -->
+  <div class="error-panel" id="errorPanel"></div>
+
+  <!-- Results -->
+  <div class="results" id="results"></div>
+
+</main>
+
+<script>
+// State
+let uploadedFiles = [];
+const MAX_FILES = 10;
+
+// DOM refs
+const dropZone = document.getElementById('dropZone');
+const fileInput = document.getElementById('fileInput');
+const fileList = document.getElementById('fileList');
+const fileCounter = document.getElementById('fileCounter');
+const processBtn = document.getElementById('processBtn');
+const loadingPanel = document.getElementById('loadingPanel');
+const errorPanel = document.getElementById('errorPanel');
+const results = document.getElementById('results');
+
+// File handling
+fileInput.addEventListener('change', (e) => {
+  handleFiles(e.target.files);
+  fileInput.value = ''; // reset so same file can be re-added
+});
+
+dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.classList.add('dragging'); });
+dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragging'));
+dropZone.addEventListener('drop', (e) => {
+  e.preventDefault();
+  dropZone.classList.remove('dragging');
+  handleFiles(e.dataTransfer.files);
+});
+
+function handleFiles(filesList) {
+  for (const file of filesList) {
+    if (uploadedFiles.length >= MAX_FILES) {
+      alert('Maximum ' + MAX_FILES + ' files allowed.');
+      break;
+    }
+    if (!file.type.startsWith('image/') && file.type !== 'application/pdf') {
+      alert(file.name + ' is not a supported file type. Use PDF, JPG, or PNG.');
+      continue;
+    }
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const dataUrl = e.target.result;
+      const base64 = dataUrl.split(',')[1];
+      uploadedFiles.push({
+        name: file.name,
+        size: file.size,
+        type: file.type,
+        base64,
+        dataUrl
+      });
+      renderFileList();
+    };
+    reader.readAsDataURL(file);
+  }
+}
+
+function removeFile(index) {
+  uploadedFiles.splice(index, 1);
+  renderFileList();
+}
+
+function renderFileList() {
+  fileCounter.textContent = uploadedFiles.length + ' / ' + MAX_FILES + ' files';
+  if (uploadedFiles.length === 0) {
+    fileList.innerHTML = '';
+    processBtn.disabled = true;
+    return;
+  }
+  processBtn.disabled = false;
+  fileList.innerHTML = uploadedFiles.map((f, i) => {
+    const icon = f.type === 'application/pdf' ? '\u{1F4C4}' : '\u{1F5BC}\uFE0F';
+    const size = (f.size / 1024).toFixed(1) + ' KB';
+    return '<div class="file-item">' +
+      '<div class="file-item-icon">' + icon + '</div>' +
+      '<div class="file-item-info">' +
+        '<div class="file-item-name">' + escHtml(f.name) + '</div>' +
+        '<div class="file-item-size">' + size + '</div>' +
+      '</div>' +
+      '<button class="file-item-remove" onclick="removeFile(' + i + ')">\u2715</button>' +
+    '</div>';
+  }).join('');
+}
+
+function escHtml(str) {
+  if (!str) return '';
+  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/<cite[^>]*>|<\/cite>/gi, '');
+}
+
+// Loading
+let stepTimer;
+function startLoading() {
+  loadingPanel.classList.add('visible');
+  results.classList.remove('visible');
+  errorPanel.classList.remove('visible');
+  const steps = document.querySelectorAll('.loading-step');
+  steps.forEach(s => { s.classList.remove('active','done'); });
+  steps[0].classList.add('active');
+  let idx = 0;
+  stepTimer = setInterval(() => {
+    steps[idx].classList.remove('active');
+    steps[idx].classList.add('done');
+    steps[idx].querySelector('.step-icon').textContent = '\u2713';
+    idx++;
+    if (idx < steps.length) {
+      steps[idx].classList.add('active');
+      steps[idx].querySelector('.step-icon').textContent = '\u25C9';
+    } else {
+      clearInterval(stepTimer);
+    }
+  }, 3000);
+}
+
+function stopLoading() {
+  clearInterval(stepTimer);
+  loadingPanel.classList.remove('visible');
+}
+
+// API call
+async function processDrawings() {
+  if (uploadedFiles.length === 0) return;
+
+  startLoading();
+  processBtn.disabled = true;
+
+  // Build content blocks
+  const content = [];
+  for (const f of uploadedFiles) {
+    if (f.type === 'application/pdf') {
+      content.push({
+        type: 'document',
+        source: { type: 'base64', media_type: 'application/pdf', data: f.base64 }
+      });
+    } else {
+      content.push({
+        type: 'image',
+        source: { type: 'base64', media_type: f.type || 'image/jpeg', data: f.base64 }
+      });
+    }
+  }
+
+  content.push({
+    type: 'text',
+    text: 'Extract ALL tagged piping components from these ' + uploadedFiles.length + ' drawing page(s). Return the complete BOM as specified in the JSON format.'
+  });
+
+  try {
+    const resp = await fetch('/api/takeoff', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ messages: [{ role: 'user', content }] })
+    });
+
+    const data = await resp.json();
+    stopLoading();
+
+    if (!resp.ok) {
+      errorPanel.textContent = '\u26A0 Error: ' + (data.error || 'Unknown error');
+      errorPanel.classList.add('visible');
+      processBtn.disabled = false;
+      return;
+    }
+
+    // Extract text from response
+    const fullText = (data.content || []).filter(b => b.type === 'text').map(b => b.text).join('\n');
+    renderBOM(fullText);
+
+  } catch (err) {
+    stopLoading();
+    errorPanel.textContent = '\u26A0 Search error: ' + err.message;
+    errorPanel.classList.add('visible');
+  }
+
+  processBtn.disabled = false;
+}
+
+// Render BOM
+let lastBomData = null;
+
+function renderBOM(rawText) {
+  results.innerHTML = '';
+
+  const clean = rawText.replace(/```json|```/g, '').trim();
+  const start = clean.indexOf('{');
+  const end = clean.lastIndexOf('}');
+
+  let data;
+  try {
+    let jsonStr = clean.slice(start, end + 1);
+    try {
+      data = JSON.parse(jsonStr);
+    } catch {
+      data = JSON.parse(jsonStr.replace(/\n/g, ' ').replace(/\s+/g, ' '));
+    }
+  } catch {
+    // Fallback: show raw
+    results.innerHTML = '<div class="result-section"><div class="section-header"><span class="section-badge badge-spec">RAW</span><span class="section-title">AI RESPONSE</span></div><div class="section-body"><div class="raw-response">' + escHtml(rawText) + '</div></div></div>';
+    results.classList.add('visible');
+    return;
+  }
+
+  lastBomData = data;
+
+  // Drawing info banner
+  if (data.drawing_info) {
+    const di = data.drawing_info;
+    let html = '<div class="drawing-banner">';
+    if (di.title) html += '<div class="drawing-banner-item"><div class="drawing-banner-label">Drawing Title</div><div class="drawing-banner-value">' + escHtml(di.title) + '</div></div>';
+    if (di.drawing_number) html += '<div class="drawing-banner-item"><div class="drawing-banner-label">Drawing #</div><div class="drawing-banner-value">' + escHtml(di.drawing_number) + '</div></div>';
+    if (di.revision) html += '<div class="drawing-banner-item"><div class="drawing-banner-label">Revision</div><div class="drawing-banner-value">' + escHtml(di.revision) + '</div></div>';
+    if (di.pages_processed) html += '<div class="drawing-banner-item"><div class="drawing-banner-label">Pages Processed</div><div class="drawing-banner-value">' + di.pages_processed + '</div></div>';
+    html += '</div>';
+    results.innerHTML += html;
+  }
+
+  // BOM table
+  if (data.bom && data.bom.length > 0) {
+    let html = '<div class="result-section"><div class="section-header"><span class="section-badge badge-priority">BOM</span><span class="section-title">BILL OF MATERIALS \u2014 ' + data.bom.length + ' ITEMS</span></div><div class="section-body">';
+    html += '<div class="bom-table-wrap"><table class="bom-table"><thead><tr>';
+    html += '<th>#</th><th>Tag</th><th>Qty</th><th>Size</th><th>Description</th><th>Material</th><th>Spec</th><th>Class/Schedule</th><th>End Conn.</th><th>Notes</th>';
+    html += '</tr></thead><tbody>';
+
+    data.bom.forEach((item, i) => {
+      html += '<tr>';
+      html += '<td>' + (item.line || i + 1) + '</td>';
+      html += '<td style="color:var(--amber);font-family:var(--mono);font-size:12px;">' + escHtml(item.tag || '\u2014') + '</td>';
+      html += '<td style="font-weight:600;color:var(--text-bright);">' + (item.qty || 1) + '</td>';
+      html += '<td>' + escHtml(item.size || '\u2014') + '</td>';
+      html += '<td>' + escHtml(item.description || '\u2014') + '</td>';
+      html += '<td style="font-size:12px;">' + escHtml(item.material || '\u2014') + '</td>';
+      html += '<td style="font-size:12px;">' + escHtml(item.spec || '\u2014') + '</td>';
+      html += '<td>' + escHtml(item.class_schedule || '\u2014') + '</td>';
+      html += '<td>' + escHtml(item.end_connections || '\u2014') + '</td>';
+      html += '<td style="font-size:12px;color:var(--text-dim);">' + escHtml(item.notes || '') + '</td>';
+      html += '</tr>';
+    });
+
+    html += '</tbody></table></div>';
+    html += '<button class="btn-export" onclick="exportCSV()">\u2913 Export CSV</button>';
+    html += '</div></div>';
+    results.innerHTML += html;
+  }
+
+  // Extraction notes
+  if (data.extraction_notes) {
+    results.innerHTML += '<div class="notes-panel"><div class="notes-panel-title">\u2691 Extraction Notes</div>' + escHtml(data.extraction_notes) + '</div>';
+  }
+
+  results.classList.add('visible');
+}
+
+// CSV export
+function exportCSV() {
+  if (!lastBomData || !lastBomData.bom) return;
+
+  const headers = ['Line','Tag','Qty','Size','Description','Material','Spec','Class/Schedule','End Connections','Notes'];
+  const rows = lastBomData.bom.map(item => [
+    item.line || '',
+    item.tag || '',
+    item.qty || '',
+    item.size || '',
+    item.description || '',
+    item.material || '',
+    item.spec || '',
+    item.class_schedule || '',
+    item.end_connections || '',
+    item.notes || ''
+  ]);
+
+  let csv = headers.join(',') + '\n';
+  rows.forEach(row => {
+    csv += row.map(cell => '"' + String(cell).replace(/"/g, '""') + '"').join(',') + '\n';
+  });
+
+  const blob = new Blob([csv], { type: 'text/csv' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'bom-takeoff-' + new Date().toISOString().slice(0,10) + '.csv';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+</script>
+
+</body>
+</html>
