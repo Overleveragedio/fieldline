@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>SearchToSupply — Automated Take Offs</title>
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@300;400;500;600;700;800&family=IBM+Plex+Mono:wght@300;400;500&family=Barlow:wght@300;400;500&display=swap" rel="stylesheet" />
+<script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
 <style>
   :root {
     --bg: #0a0c0b;
@@ -1137,7 +1138,7 @@ function renderBOM(rawText) {
     });
 
     html += '</tbody></table></div>';
-    html += '<button class="btn-export" onclick="exportCSV()">\u2913 Export CSV</button>';
+    html += '<button class="btn-export" onclick="exportExcel()">\u2913 Export Excel</button>';
     html += '</div></div>';
     results.innerHTML += html;
   }
@@ -1151,7 +1152,7 @@ function renderBOM(rawText) {
 }
 
 // CSV export
-function exportCSV() {
+function exportExcel() {
   if (!lastBomData || !lastBomData.bom) return;
 
   const headers = ['Line','Tag','Qty','Size','Description','Material','Spec','Class/Schedule','End Connections','Notes'];
@@ -1168,19 +1169,41 @@ function exportCSV() {
     item.notes || ''
   ]);
 
-  let csv = headers.join(',') + '\n';
-  rows.forEach(row => {
-    csv += row.map(cell => '"' + String(cell).replace(/"/g, '""') + '"').join(',') + '\n';
+  const wsData = [headers, ...rows];
+  const ws = XLSX.utils.aoa_to_sheet(wsData);
+
+  // Auto-size columns
+  ws['!cols'] = headers.map((h, i) => {
+    const maxLen = Math.max(h.length, ...rows.map(r => String(r[i] || '').length));
+    return { wch: Math.min(maxLen + 2, 40) };
   });
 
-  const blob = new Blob([csv], { type: 'text/csv' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = 'bom-takeoff-' + new Date().toISOString().slice(0,10) + '.csv';
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
+  // Bold header row
+  for (let c = 0; c < headers.length; c++) {
+    const cell = ws[XLSX.utils.encode_cell({ r: 0, c })];
+    if (cell) cell.s = { font: { bold: true } };
+  }
+
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'BOM Takeoff');
+
+  // Add drawing info sheet if available
+  if (lastBomData.drawing_info) {
+    const di = lastBomData.drawing_info;
+    const infoData = [
+      ['Drawing Title', di.title || ''],
+      ['Drawing Number', di.drawing_number || ''],
+      ['Revision', di.revision || ''],
+      ['Pages Processed', di.pages_processed || ''],
+      ['', ''],
+      ['Extraction Notes', lastBomData.extraction_notes || '']
+    ];
+    const wsInfo = XLSX.utils.aoa_to_sheet(infoData);
+    wsInfo['!cols'] = [{ wch: 18 }, { wch: 60 }];
+    XLSX.utils.book_append_sheet(wb, wsInfo, 'Drawing Info');
+  }
+
+  XLSX.writeFile(wb, 'bom-takeoff-' + new Date().toISOString().slice(0,10) + '.xlsx');
   URL.revokeObjectURL(url);
 }
 </script>
