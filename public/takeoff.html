@@ -1072,17 +1072,26 @@ let lastBomData = null;
 function renderBOM(rawText) {
   results.innerHTML = '';
 
-  const clean = rawText.replace(/```json|```/g, '').trim();
+  // Strip cite tags and markdown fences
+  const clean = rawText.replace(/<cite[^>]*>|<\/cite>/gi, '').replace(/```json|```/g, '').trim();
   const start = clean.indexOf('{');
   const end = clean.lastIndexOf('}');
 
   let data;
   try {
     let jsonStr = clean.slice(start, end + 1);
+    // Try parsing as-is first
     try {
       data = JSON.parse(jsonStr);
-    } catch {
-      data = JSON.parse(jsonStr.replace(/\n/g, ' ').replace(/\s+/g, ' '));
+    } catch (e1) {
+      // Collapse newlines and retry
+      try {
+        data = JSON.parse(jsonStr.replace(/\r?\n/g, ' ').replace(/\s+/g, ' '));
+      } catch (e2) {
+        // Try fixing common issues: control chars inside strings
+        const sanitized = jsonStr.replace(/[\x00-\x1f]/g, (ch) => ch === '\t' ? '\\t' : ch === '\n' ? '\\n' : ch === '\r' ? '' : ' ');
+        data = JSON.parse(sanitized);
+      }
     }
   } catch {
     // Fallback: show raw
