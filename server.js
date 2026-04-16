@@ -356,6 +356,118 @@ app.post('/api/search', resolveUser, checkRateLimit, async (req, res) => {
   }
 });
 
+// ─── Streaming search endpoint ───────────────────────────────────────────────
+app.post('/api/search/stream', resolveUser, checkRateLimit, async (req, res) => {
+  const { model, max_tokens, system, tools, messages, region } = req.body;
+
+  if (!messages || !Array.isArray(messages) || messages.length === 0) {
+    return res.status(400).json({ error: 'messages array is required' });
+  }
+
+  // Set SSE headers
+  res.setHeader('Content-Type', 'text/event-stream');
+  res.setHeader('Cache-Control', 'no-cache');
+  res.setHeader('Connection', 'keep-alive');
+  res.setHeader('X-Accel-Buffering', 'no'); // Disable nginx buffering
+  res.flushHeaders();
+
+  try {
+    const upstream = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type':         'application/json',
+        'x-api-key':            API_KEY,
+        'anthropic-version':    '2023-06-01',
+        'anthropic-beta':       'web-search-2025-03-05',
+      },
+      body: JSON.stringify({
+        model:      model      || 'claude-sonnet-4-20250514',
+        max_tokens: max_tokens || 4096,
+        system,
+        tools,
+        messages,
+        stream: true,
+      }),
+    });
+
+    if (!upstream.ok) {
+      const errData = await upstream.json();
+      res.write(`data: ${JSON.stringify({ error: errData.error?.message || 'Upstream error' })}\n\n`);
+      res.write('data: [DONE]\n\n');
+      return res.end();
+    }
+
+    let fullText = '';
+
+    // Process the Anthropic streaming response
+    const reader = upstream.body;
+    let buffer = '';
+
+    reader.on('data', (chunk) => {
+      buffer += chunk.toString();
+
+      // Parse SSE lines from Anthropic
+      const lines = buffer.split('\n');
+      buffer = lines.pop(); // Keep incomplete line in buffer
+
+      for (const line of lines) {
+        if (!line.startsWith('data: ')) continue;
+        const jsonStr = line.slice(6).trim();
+        if (jsonStr === '[DONE]') continue;
+
+        try {
+          const event = JSON.parse(jsonStr);
+
+          // content_block_delta contains the text chunks
+          if (event.type === 'content_block_delta' && event.delta?.type === 'text_delta') {
+            const text = event.delta.text;
+            fullText += text;
+            // Forward text chunk to client
+            res.write(`data: ${JSON.stringify({ type: 'text', text })}\n\n`);
+          }
+        } catch {
+          // Skip unparseable events
+        }
+      }
+    });
+
+    reader.on('end', () => {
+      // Send completion signal
+      res.write('data: [DONE]\n\n');
+      res.end();
+
+      // Log the search (non-blocking)
+      try {
+        const userMsg = messages[0]?.content;
+        const queryText = typeof userMsg === 'string' ? userMsg : JSON.stringify(userMsg);
+        const partMatch = queryText.match(/Part\/Model Number:\s*(.+)/i);
+        const partNumber = partMatch ? partMatch[1].trim() : null;
+        const typeMatch = queryText.match(/Product Type:\s*(.+)/i);
+        const productType = typeMatch ? typeMatch[1].trim() : null;
+        const catMatch = queryText.match(/Category:\s*(.+)/i);
+        const category = catMatch ? catMatch[1].trim() : null;
+        const ip = req.ip || req.connection?.remoteAddress || 'unknown';
+        insertSearchLog.run(ip, req.userTier, queryText, partNumber, productType, category, region || null, fullText);
+      } catch (logErr) {
+        console.warn('Stream search log failed:', logErr.message);
+      }
+    });
+
+    reader.on('error', (err) => {
+      console.error('Stream error:', err);
+      res.write(`data: ${JSON.stringify({ error: err.message })}\n\n`);
+      res.write('data: [DONE]\n\n');
+      res.end();
+    });
+
+  } catch (err) {
+    console.error('Stream proxy error:', err);
+    res.write(`data: ${JSON.stringify({ error: err.message })}\n\n`);
+    res.write('data: [DONE]\n\n');
+    res.end();
+  }
+});
+
 // ─── Admin: View search logs ─────────────────────────────────────────────────
 app.get('/api/admin/logs', (req, res) => {
   const limit = Math.min(parseInt(req.query.limit) || 100, 500);

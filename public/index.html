@@ -516,6 +516,55 @@
 
   .step-icon { width: 14px; text-align: center; }
 
+  /* ─── STREAMING PLACEHOLDERS ─── */
+  .section-placeholder {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 20px 24px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    animation: shimmer 1.5s ease-in-out infinite;
+  }
+
+  .section-placeholder .shimmer-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: 6px;
+    background: var(--surface2);
+    flex-shrink: 0;
+  }
+
+  .section-placeholder .shimmer-lines {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .section-placeholder .shimmer-line {
+    height: 10px;
+    border-radius: 4px;
+    background: var(--surface2);
+  }
+
+  .section-placeholder .shimmer-line:nth-child(1) { width: 60%; }
+  .section-placeholder .shimmer-line:nth-child(2) { width: 40%; }
+
+  .section-placeholder .shimmer-label {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.15em;
+    color: var(--text-dim);
+    text-transform: uppercase;
+  }
+
+  @keyframes shimmer {
+    0%, 100% { opacity: 0.6; }
+    50% { opacity: 0.3; }
+  }
+
   /* ─── RESULTS ─── */
   .results { display: none; flex-direction: column; gap: 28px; }
   .results.visible { display: flex; }
@@ -2023,7 +2072,8 @@ CRITICAL RULES:
 - Prioritize DISTRIBUTORS first — that's what matters most to this user.
 - Never make up phone numbers or emails. If you can't confirm, use null.
 - If the part number is ambiguous (multiple manufacturers), list the most likely match and note the ambiguity in sourcing_notes.
-- Return ONLY the JSON object. No preamble, no explanation, no markdown.`;
+- Return ONLY the JSON object. No preamble, no explanation, no markdown.
+- OUTPUT SECTIONS IN THIS EXACT ORDER and complete each section fully before starting the next: identified → distributors → manufacturer_contact → specs → documents → alternates → sourcing_notes. This is critical for progressive display.`;
 }
 
 // ─── TEXT SEARCH ──────────────────────────────────────────────────────────────
@@ -2092,16 +2142,71 @@ async function runImageSearch() {
 }
 
 // ─── API CALL ─────────────────────────────────────────────────────────────────
-async function callAPI(messages, selectedRegion) {
-  try {
-    const headers = { 'Content-Type': 'application/json' };
-    if (authToken) {
-      headers['Authorization'] = `Bearer ${authToken}`;
-    }
+// ─── WESTLUND LOCATIONS (client-side for streaming) ────────────────────────
+const WESTLUND_LOCATIONS = {
+  'BC — Vancouver':     { name: 'Westlund Vancouver (Surrey)', type: 'Authorized Distributor', region: 'BC, Canada', phone: '604-882-5972', email: 'Vancouver@WestlundPVF.com', website: 'westlundpvf.com', notes: 'Address: 9714-192 Street, Surrey, BC V4N 4C6' },
+  'BC — Maple Ridge':   { name: 'Westlund Maple Ridge', type: 'Authorized Distributor', region: 'BC, Canada', phone: '604-882-5972', email: 'insidesales873@westlundpvf.com', website: 'westlundpvf.com', notes: 'Address: 20180 115A Ave, Maple Ridge, BC V2X 0Z4' },
+  'BC — Surrey':        { name: 'Westlund Vancouver (Surrey)', type: 'Authorized Distributor', region: 'BC, Canada', phone: '604-882-5972', email: 'Vancouver@WestlundPVF.com', website: 'westlundpvf.com', notes: 'Address: 9714-192 Street, Surrey, BC V4N 4C6' },
+  'BC — Victoria':      { name: 'Westlund Vancouver Island', type: 'Authorized Distributor', region: 'BC, Canada', phone: '250-746-0904', email: 'VancouverIsland@WestlundPVF.com', website: 'westlundpvf.com', notes: 'Address: 3-3107 Henry Road, Chemainus, BC V0R 1K4' },
+  'BC — Kelowna':       { name: 'Westlund Kamloops', type: 'Authorized Distributor', region: 'BC, Canada', phone: '604-882-5972', email: 'Vancouver@WestlundPVF.com', website: 'westlundpvf.com', notes: 'Serving interior BC — Contact for Kelowna area service' },
+  'BC — Prince George': { name: 'Westlund Fort St. John', type: 'Authorized Distributor', region: 'BC, Canada', phone: '250-785-6642', email: 'FortStJohn@WestlundPVF.com', website: 'westlundpvf.com', notes: 'Address: 10709 Alaska Road, Fort St. John, BC V1J 5P4 — Serving Northern BC' },
+  'AB — Calgary':       { name: 'Westlund Calgary', type: 'Authorized Distributor', region: 'AB, Canada', phone: '403-215-7473', email: 'calgary@westlundpvf.com', website: 'westlundpvf.com', notes: 'Address: Bay 35, 4216-54 Ave SE, Calgary, AB T2C 2E3' },
+  'AB — Edmonton':      { name: 'Westlund Edmonton (Nisku)', type: 'Authorized Distributor', region: 'AB, Canada', phone: '780-463-7473', email: 'edmontonorders@westlundpvf.com', website: 'westlundpvf.com', notes: 'Address: 1130-34 Ave, Unit 1, Nisku, AB T9E 1K7' },
+  'AB — Red Deer':      { name: 'Westlund Calgary', type: 'Authorized Distributor', region: 'AB, Canada', phone: '403-215-7473', email: 'calgary@westlundpvf.com', website: 'westlundpvf.com', notes: 'Address: Bay 35, 4216-54 Ave SE, Calgary, AB T2C 2E3 — Serving Central Alberta' },
+  'AB — Fort McMurray': { name: 'Westlund Fort McMurray', type: 'Authorized Distributor', region: 'AB, Canada', phone: '780-791-7173', email: 'FortMcMurray@WestlundPVF.com', website: 'westlundpvf.com', notes: 'Address: 205 MacDonald Crescent, Fort McMurray, AB T9H 4B3' },
+  'SK — Saskatoon':     { name: 'Westlund Saskatoon', type: 'Authorized Distributor', region: 'SK, Canada', phone: '306-652-5545', email: '677sales@WestlundPVF.com', website: 'westlundpvf.com', notes: 'Address: 803 58th Street East, Saskatoon, SK S7K 6X5' },
+  'SK — Regina':        { name: 'Westlund Regina', type: 'Authorized Distributor', region: 'SK, Canada', phone: '306-569-5249', email: '677sales@WestlundPVF.com', website: 'westlundpvf.com', notes: 'Address: 117 Hodsman Road, Regina, SK S4N 5W5' },
+  'MB — Winnipeg':      { name: 'Westlund Winnipeg', type: 'Authorized Distributor', region: 'MB, Canada', phone: '204-925-8444', email: 'winnipeg@westlundpvf.com', website: 'westlundpvf.com', notes: 'Serving Manitoba' },
+  'MB — Brandon':       { name: 'Westlund Winnipeg', type: 'Authorized Distributor', region: 'MB, Canada', phone: '204-925-8444', email: 'winnipeg@westlundpvf.com', website: 'westlundpvf.com', notes: 'Serving Manitoba — Nearest branch in Winnipeg' },
+  'ON — Toronto':       { name: 'Westlund Toronto', type: 'Authorized Distributor', region: 'ON, Canada', phone: '905-624-4575', email: 'toronto@westlundpvf.com', website: 'westlundpvf.com', notes: 'Address: 5188A Everest Drive, Mississauga, ON L4W 2R4' },
+  'ON — Ottawa':        { name: 'Westlund Toronto', type: 'Authorized Distributor', region: 'ON, Canada', phone: '905-624-4575', email: 'toronto@westlundpvf.com', website: 'westlundpvf.com', notes: 'Serving Eastern Ontario — Contact Toronto branch' },
+  'ON — Hamilton':      { name: 'Westlund Niagara', type: 'Authorized Distributor', region: 'ON, Canada', phone: '905-682-9044', email: 'niagara@westlundpvf.com', website: 'westlundpvf.com', notes: 'Address: 70 Provincial Street, Welland, ON L3B 5W7' },
+  'ON — London':        { name: 'Westlund Toronto', type: 'Authorized Distributor', region: 'ON, Canada', phone: '905-624-4575', email: 'toronto@westlundpvf.com', website: 'westlundpvf.com', notes: 'Serving Southwestern Ontario — Contact Toronto branch' },
+  'ON — Sudbury':       { name: 'Westlund Sudbury', type: 'Authorized Distributor', region: 'ON, Canada', phone: '705-675-3626', email: 'sudbury@westlundpvf.com', website: 'westlundpvf.com', notes: 'Address: 1367 Kelly Lake Road, Unit 2, Sudbury, ON P3E 5P5' },
+  'ON — Thunder Bay':   { name: 'Westlund Sudbury', type: 'Authorized Distributor', region: 'ON, Canada', phone: '705-675-3626', email: 'sudbury@westlundpvf.com', website: 'westlundpvf.com', notes: 'Serving Northern Ontario — Nearest branch in Sudbury' },
+  'QC — Montreal':      { name: 'Westlund Toronto', type: 'Authorized Distributor', region: 'ON, Canada', phone: '905-624-4575', email: 'toronto@westlundpvf.com', website: 'westlundpvf.com', notes: 'Serving Quebec — Contact Toronto branch' },
+  'QC — Quebec City':   { name: 'Westlund Toronto', type: 'Authorized Distributor', region: 'ON, Canada', phone: '905-624-4575', email: 'toronto@westlundpvf.com', website: 'westlundpvf.com', notes: 'Serving Quebec — Contact Toronto branch' },
+  'NB — Saint John':    { name: 'Westlund Saint John', type: 'Authorized Distributor', region: 'NB, Canada', phone: '506-652-2233', email: 'RMacPhatter@westlundpvf.com', website: 'westlundpvf.com', notes: 'Address: 1143 Bayside Dr, Saint John, NB E2J 4Y2' },
+  'NS — Halifax':       { name: 'Westlund Saint John', type: 'Authorized Distributor', region: 'NB, Canada', phone: '506-652-2233', email: 'RMacPhatter@westlundpvf.com', website: 'westlundpvf.com', notes: 'Serving Atlantic Canada — Nearest branch in Saint John, NB' },
+  "NL — St. John's":    { name: 'Westlund Saint John', type: 'Authorized Distributor', region: 'NB, Canada', phone: '506-652-2233', email: 'RMacPhatter@westlundpvf.com', website: 'westlundpvf.com', notes: 'Serving Atlantic Canada — Nearest branch in Saint John, NB' },
+  'PE — Charlottetown': { name: 'Westlund Saint John', type: 'Authorized Distributor', region: 'NB, Canada', phone: '506-652-2233', email: 'RMacPhatter@westlundpvf.com', website: 'westlundpvf.com', notes: 'Serving Atlantic Canada — Nearest branch in Saint John, NB' },
+  'NT — Yellowknife':   { name: 'Westlund Edmonton (Nisku)', type: 'Authorized Distributor', region: 'AB, Canada', phone: '780-463-7473', email: 'edmontonorders@westlundpvf.com', website: 'westlundpvf.com', notes: 'Serving Northern Canada from Edmonton/Nisku' },
+  'YT — Whitehorse':    { name: 'Westlund Fort St. John', type: 'Authorized Distributor', region: 'BC, Canada', phone: '250-785-6642', email: 'FortStJohn@WestlundPVF.com', website: 'westlundpvf.com', notes: 'Serving Yukon from Fort St. John, BC' },
+  'NU — Iqaluit':       { name: 'Westlund Edmonton (Nisku)', type: 'Authorized Distributor', region: 'AB, Canada', phone: '780-463-7473', email: 'edmontonorders@westlundpvf.com', website: 'westlundpvf.com', notes: 'Serving Northern Canada from Edmonton/Nisku' },
+};
+const DEFAULT_WESTLUND = { name: 'Westlund Maple Ridge', type: 'Authorized Distributor', region: 'BC, Canada', phone: '604-882-5972', email: 'insidesales873@westlundpvf.com', website: 'westlundpvf.com', notes: 'Address: 20180 115A Ave, Maple Ridge, BC V2X 0Z4' };
 
-    const resp = await fetch('/api/search', {
+function getWestlundForRegion(region) {
+  return WESTLUND_LOCATIONS[region] || DEFAULT_WESTLUND;
+}
+
+// ─── STREAMING API CALL ─────────────────────────────────────────────────────
+async function callAPI(messages, selectedRegion) {
+  const container = document.getElementById('results');
+  const errorPanel = document.getElementById('errorPanel');
+  errorPanel.classList.remove('visible');
+
+  try {
+    const hdrs = { 'Content-Type': 'application/json' };
+    if (authToken) hdrs['Authorization'] = `Bearer ${authToken}`;
+
+    // Show placeholders immediately
+    stopLoading();
+    container.innerHTML = '';
+    container.classList.add('visible');
+
+    const placeholders = ['Identifying product...', 'Finding distributors...', 'Loading manufacturer info...', 'Fetching specifications...'];
+    placeholders.forEach(label => {
+      const ph = document.createElement('div');
+      ph.className = 'section-placeholder';
+      ph.setAttribute('data-placeholder', 'true');
+      ph.innerHTML = `<div class="shimmer-icon"></div><div class="shimmer-lines"><div class="shimmer-label">${label}</div><div class="shimmer-line"></div><div class="shimmer-line"></div></div>`;
+      container.appendChild(ph);
+    });
+
+    const resp = await fetch('/api/search/stream', {
       method: 'POST',
-      headers,
+      headers: hdrs,
       body: JSON.stringify({
         model: 'claude-sonnet-4-20250514',
         max_tokens: 4096,
@@ -2112,198 +2217,313 @@ async function callAPI(messages, selectedRegion) {
       })
     });
 
-    const data = await resp.json();
-
-    // Handle rate limit
-    if (resp.status === 429) {
-      stopLoading();
-      searchesRemaining = 0;
-      updateAuthUI();
-      document.getElementById('rateLimitPanel').classList.add('visible');
-      return;
-    }
-
     if (!resp.ok) {
-      throw new Error(data.error?.message || data.error || `API error ${resp.status}`);
+      const errData = await resp.json().catch(() => ({}));
+      throw new Error(errData.error || `API error ${resp.status}`);
     }
 
-    // Update tier state from response metadata
-    if (data._fieldline) {
-      userTier = data._fieldline.tier;
-      if (data._fieldline.searches_remaining !== null && data._fieldline.searches_remaining !== undefined) {
-        searchesRemaining = data._fieldline.searches_remaining;
+    const reader = resp.body.getReader();
+    const decoder = new TextDecoder();
+    let accumulated = '';
+    let sseBuffer = '';
+    const renderedSections = new Set();
+
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+
+      sseBuffer += decoder.decode(value, { stream: true });
+
+      // Parse SSE lines
+      const lines = sseBuffer.split('\n');
+      sseBuffer = lines.pop() || '';
+
+      for (const line of lines) {
+        if (!line.startsWith('data: ')) continue;
+        const payload = line.slice(6).trim();
+        if (payload === '[DONE]') continue;
+
+        try {
+          const evt = JSON.parse(payload);
+          if (evt.error) throw new Error(evt.error);
+          if (evt.type === 'text' && evt.text) {
+            accumulated += evt.text;
+          }
+        } catch (e) {
+          if (e.message && !e.message.includes('JSON')) throw e;
+        }
       }
-      updateAuthUI();
+
+      // Try progressive render
+      tryProgressiveRender(accumulated, container, renderedSections, selectedRegion);
     }
 
-    // Extract text from all content blocks
-    const fullText = (data.content || [])
-      .filter(b => b.type === 'text')
-      .map(b => b.text)
-      .join('\n');
-
-    stopLoading();
-    document.getElementById('rateLimitPanel').classList.remove('visible');
-    renderResults(fullText);
+    // Final render with complete text
+    finalizeRender(accumulated, container, renderedSections, selectedRegion);
 
   } catch (err) {
     stopLoading();
-    const ep = document.getElementById('errorPanel');
-    ep.textContent = `⚠ Search error: ${err.message}`;
-    ep.classList.add('visible');
+    // Remove placeholders
+    container.querySelectorAll('[data-placeholder]').forEach(p => p.remove());
+    if (!container.children.length) container.classList.remove('visible');
+    errorPanel.textContent = `⚠ Search error: ${err.message}`;
+    errorPanel.classList.add('visible');
     console.error(err);
   }
 }
 
-// ─── RENDER RESULTS ───────────────────────────────────────────────────────────
+// ─── PROGRESSIVE RENDERING ──────────────────────────────────────────────────
+function tryProgressiveRender(text, container, rendered, region) {
+  // Strip cite tags and markdown fences
+  const clean = text.replace(/<cite[^>]*>|<\/cite>/gi, '').replace(/```json|```/g, '').trim();
+
+  // Try to parse complete JSON first
+  const start = clean.indexOf('{');
+  if (start === -1) return;
+
+  let data;
+  try {
+    const end = clean.lastIndexOf('}');
+    if (end <= start) return;
+    let jsonStr = clean.slice(start, end + 1);
+    try { data = JSON.parse(jsonStr); } catch {
+      data = JSON.parse(jsonStr.replace(/\n/g, ' ').replace(/\s+/g, ' '));
+    }
+  } catch {
+    // JSON not complete yet — try partial section extraction
+    tryPartialRender(clean, start, container, rendered, region);
+    return;
+  }
+
+  // Full JSON parsed — render any new sections
+  renderNewSections(data, container, rendered, region);
+}
+
+function tryPartialRender(clean, start, container, rendered, region) {
+  // Try to extract "identified" section early (it's a simple object)
+  if (!rendered.has('identified')) {
+    const match = clean.match(/"identified"\s*:\s*(\{[^{}]*\})/);
+    if (match) {
+      try {
+        const id = JSON.parse(match[1]);
+        renderIdentified(id, container);
+        rendered.add('identified');
+        removeFirstPlaceholder(container);
+      } catch {}
+    }
+  }
+}
+
+function finalizeRender(text, container, rendered, region) {
+  // Remove any remaining placeholders
+  container.querySelectorAll('[data-placeholder]').forEach(p => p.remove());
+
+  const clean = text.replace(/<cite[^>]*>|<\/cite>/gi, '').replace(/```json|```/g, '').trim();
+  const start = clean.indexOf('{');
+  const end = clean.lastIndexOf('}');
+
+  let data;
+  try {
+    let jsonStr = clean.slice(start, end + 1);
+    try { data = JSON.parse(jsonStr); } catch {
+      data = JSON.parse(jsonStr.replace(/\n/g, ' ').replace(/\s+/g, ' '));
+    }
+  } catch {
+    // Can't parse — show raw if nothing was rendered
+    if (rendered.size === 0) {
+      const section = makeSection('AI RESPONSE', 'badge-spec', '');
+      section.querySelector('.section-body').innerHTML = `<pre class="raw-response">${escHtml(text)}</pre>`;
+      container.appendChild(section);
+    }
+    return;
+  }
+
+  // Render all remaining sections
+  renderNewSections(data, container, rendered, region);
+}
+
+function renderNewSections(data, container, rendered, region) {
+  if (data.identified && !rendered.has('identified')) {
+    renderIdentified(data.identified, container);
+    rendered.add('identified');
+    removeFirstPlaceholder(container);
+  }
+
+  if (data.distributors && data.distributors.length > 0 && !rendered.has('distributors')) {
+    // Inject Westlund
+    const westlund = getWestlundForRegion(region);
+    const filtered = data.distributors.filter(d => !d.name?.toLowerCase().includes('westlund'));
+    data.distributors = [westlund, ...filtered];
+
+    renderDistributors(data.distributors, container);
+    rendered.add('distributors');
+    removeFirstPlaceholder(container);
+  }
+
+  if (data.manufacturer_contact && !rendered.has('manufacturer')) {
+    renderManufacturer(data.manufacturer_contact, container);
+    rendered.add('manufacturer');
+    removeFirstPlaceholder(container);
+  }
+
+  if (data.specs && data.specs.length > 0 && !rendered.has('specs')) {
+    renderSpecs(data.specs, data.documents, container);
+    rendered.add('specs');
+    removeFirstPlaceholder(container);
+  }
+
+  if (data.alternates && data.alternates.length > 0 && !rendered.has('alternates')) {
+    renderAlternates(data.alternates, container);
+    rendered.add('alternates');
+  }
+
+  if (data.sourcing_notes && !rendered.has('sourcing_notes')) {
+    renderSourcingNotes(data.sourcing_notes, container);
+    rendered.add('sourcing_notes');
+  }
+}
+
+function removeFirstPlaceholder(container) {
+  const ph = container.querySelector('[data-placeholder]');
+  if (ph) ph.remove();
+}
+
+// ─── INDIVIDUAL SECTION RENDERERS ───────────────────────────────────────────
+function renderIdentified(id, container) {
+  const banner = document.createElement('div');
+  banner.className = 'part-banner';
+  banner.style.animation = 'slide-up 0.4s ease both';
+  banner.innerHTML = `
+    <div>
+      <div class="part-banner-label">Identified Product</div>
+      <div class="part-banner-value">${escHtml(id.model || '—')}</div>
+    </div>
+    <div style="flex:1;padding-left:16px;border-left:1px solid var(--border)">
+      <div style="font-family:var(--display);font-size:15px;font-weight:600;color:var(--text-bright)">${escHtml(id.manufacturer || '—')}</div>
+      <div style="font-family:var(--mono);font-size:11px;color:var(--text-dim);margin-top:2px">${escHtml(id.product_line || '')} ${id.description ? '· ' + id.description : ''}</div>
+    </div>
+    <div style="font-family:var(--mono);font-size:10px;padding:4px 10px;border-radius:4px;background:${id.confidence==='high'?'rgba(46,204,113,0.1)':id.confidence==='medium'?'rgba(240,165,0,0.1)':'rgba(192,57,43,0.1)'};color:${id.confidence==='high'?'#60c080':id.confidence==='medium'?'var(--amber)':'#e07060'};border:1px solid ${id.confidence==='high'?'#1a5533':id.confidence==='medium'?'var(--amber-dim)':'rgba(192,57,43,0.3)'}">
+      ${(id.confidence||'').toUpperCase()} CONFIDENCE
+    </div>`;
+  // Insert before placeholders
+  const firstPh = container.querySelector('[data-placeholder]');
+  if (firstPh) container.insertBefore(banner, firstPh);
+  else container.appendChild(banner);
+}
+
+function renderDistributors(distributors, container) {
+  const section = makeSection('DISTRIBUTORS & REP CONTACTS', 'badge-priority', '01');
+  section.style.animation = 'slide-up 0.4s ease both';
+  const body = section.querySelector('.section-body');
+  const grid = document.createElement('div');
+  grid.className = 'contact-grid';
+  distributors.forEach(d => {
+    const card = document.createElement('div');
+    card.className = 'contact-card';
+    const isWestlund = d.name && d.name.toLowerCase().includes('westlund');
+    card.innerHTML = `
+      ${isWestlund ? '<div class="best-match-badge">BEST MATCH</div>' : ''}
+      <div class="cc-name">${escHtml(d.name || '—')}</div>
+      <div class="cc-role">${escHtml(d.type || '')}${d.region ? ' · ' + d.region : ''}</div>
+      ${d.phone ? `<div class="cc-row"><span class="cc-icon">☎</span>${escHtml(d.phone)}</div>` : ''}
+      ${d.email ? `<div class="cc-row"><span class="cc-icon">✉</span><a href="mailto:${escHtml(d.email)}">${escHtml(d.email)}</a></div>` : ''}
+      ${d.website ? `<div class="cc-row"><span class="cc-icon">⌂</span><a href="${escHtml(d.website)}" target="_blank">${escHtml(truncUrl(d.website))}</a></div>` : ''}
+      ${d.notes ? `<div style="margin-top:8px;font-family:var(--body);font-size:12px;color:var(--text);line-height:1.5">${escHtml(d.notes)}</div>` : ''}`;
+    grid.appendChild(card);
+  });
+  body.appendChild(grid);
+  const firstPh = container.querySelector('[data-placeholder]');
+  if (firstPh) container.insertBefore(section, firstPh);
+  else container.appendChild(section);
+}
+
+function renderManufacturer(m, container) {
+  const section = makeSection('MANUFACTURER CONTACT', 'badge-mfr', '02');
+  section.style.animation = 'slide-up 0.4s ease both';
+  const body = section.querySelector('.section-body');
+  const card = document.createElement('div');
+  card.className = 'contact-card';
+  card.style.maxWidth = '480px';
+  card.innerHTML = `
+    <div class="cc-name">${escHtml(m.name || '—')}</div>
+    <div class="cc-role">${escHtml(m.hq_location || '')}</div>
+    ${m.phone ? `<div class="cc-row"><span class="cc-icon">☎</span>${escHtml(m.phone)}</div>` : ''}
+    ${m.sales_email ? `<div class="cc-row"><span class="cc-icon">✉</span><a href="mailto:${escHtml(m.sales_email)}">${escHtml(m.sales_email)}</a></div>` : ''}
+    ${m.website ? `<div class="cc-row"><span class="cc-icon">⌂</span><a href="${escHtml(m.website)}" target="_blank">${escHtml(truncUrl(m.website))}</a></div>` : ''}
+    ${m.quote_portal ? `<div class="cc-row"><span class="cc-icon">✎</span><a href="${escHtml(m.quote_portal)}" target="_blank">Quote Request Portal</a></div>` : ''}
+    ${m.rep_locator ? `<div class="cc-row"><span class="cc-icon">◎</span><a href="${escHtml(m.rep_locator)}" target="_blank">Find a Rep / Distributor</a></div>` : ''}
+    ${m.notes ? `<div style="margin-top:8px;font-family:var(--body);font-size:12px;color:var(--text);line-height:1.5">${escHtml(m.notes)}</div>` : ''}`;
+  body.appendChild(card);
+  const firstPh = container.querySelector('[data-placeholder]');
+  if (firstPh) container.insertBefore(section, firstPh);
+  else container.appendChild(section);
+}
+
+function renderSpecs(specs, documents, container) {
+  const section = makeSection('SPECIFICATIONS', 'badge-spec', '03');
+  section.style.animation = 'slide-up 0.4s ease both';
+  const body = section.querySelector('.section-body');
+  const table = document.createElement('table');
+  table.className = 'spec-table';
+  specs.forEach(s => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td>${escHtml(s.key)}</td><td>${escHtml(s.value)}</td>`;
+    table.appendChild(tr);
+  });
+  body.appendChild(table);
+  if (documents && documents.length > 0) {
+    const docTitle = document.createElement('h3');
+    docTitle.textContent = 'Documents';
+    body.appendChild(docTitle);
+    documents.forEach(doc => {
+      const row = document.createElement('div');
+      row.className = 'cc-row';
+      row.innerHTML = `<span class="cc-icon">⇩</span>${doc.url
+        ? `<a href="${escHtml(doc.url)}" target="_blank">${escHtml(doc.title || doc.type)}</a>`
+        : escHtml(doc.title || doc.type)}
+        <span style="color:var(--text-dim);font-size:10px;margin-left:4px">[${escHtml(doc.type)}]</span>`;
+      body.appendChild(row);
+    });
+  }
+  const firstPh = container.querySelector('[data-placeholder]');
+  if (firstPh) container.insertBefore(section, firstPh);
+  else container.appendChild(section);
+}
+
+function renderAlternates(alternates, container) {
+  const section = makeSection('CROSS-REFERENCES & ALTERNATES', 'badge-alt', '04');
+  section.style.animation = 'slide-up 0.4s ease both';
+  const body = section.querySelector('.section-body');
+  alternates.forEach(a => {
+    const row = document.createElement('div');
+    row.style.cssText = 'display:flex;gap:12px;padding:8px 0;border-bottom:1px solid var(--border);align-items:flex-start;';
+    row.innerHTML = `
+      <div style="flex:1">
+        <span style="font-family:var(--mono);font-size:13px;color:var(--text-bright)">${escHtml(a.model||'—')}</span>
+        <span style="font-family:var(--mono);font-size:10px;color:var(--text-dim);margin-left:8px">${escHtml(a.manufacturer||'')}</span>
+      </div>
+      <div style="font-family:var(--mono);font-size:10px;color:var(--text-dim);text-align:right;max-width:50%">${escHtml(a.notes||'')}</div>`;
+    body.appendChild(row);
+  });
+  const firstPh = container.querySelector('[data-placeholder]');
+  if (firstPh) container.insertBefore(section, firstPh);
+  else container.appendChild(section);
+}
+
+function renderSourcingNotes(notes, container) {
+  const note = document.createElement('div');
+  note.style.cssText = 'background:var(--surface);border:1px solid var(--amber-dim);border-left:3px solid var(--amber);border-radius:8px;padding:14px 18px;font-family:var(--mono);font-size:12px;color:var(--text);line-height:1.7;animation:slide-up 0.4s ease both;';
+  note.innerHTML = `<span style="color:var(--amber);letter-spacing:0.2em;font-size:10px;display:block;margin-bottom:6px">⚑ SOURCING NOTES</span>${escHtml(notes)}`;
+  container.appendChild(note);
+}
+
+// renderResults kept as fallback for non-streaming calls (image search)
 function renderResults(rawText) {
   const container = document.getElementById('results');
   container.innerHTML = '';
   container.classList.add('visible');
-
-  let data;
-  try {
-    // Strip any accidental markdown fences
-    const clean = rawText.replace(/```json|```/g, '').trim();
-    // Find the outermost { }
-    const start = clean.indexOf('{');
-    const end = clean.lastIndexOf('}');
-    const jsonStr = clean.slice(start, end + 1);
-    try {
-      data = JSON.parse(jsonStr);
-    } catch {
-      // Claude sometimes puts literal newlines in string values — collapse them
-      data = JSON.parse(jsonStr.replace(/\n/g, ' ').replace(/\s+/g, ' '));
-    }
-  } catch (e) {
-    // Fall back to raw display
-    const section = makeSection('AI RESPONSE', 'badge-spec', '');
-    section.querySelector('.section-body').innerHTML = `<pre class="raw-response">${escHtml(rawText)}</pre>`;
-    container.appendChild(section);
-    return;
-  }
-
-  // ── Part banner ──
-  if (data.identified) {
-    const id = data.identified;
-    const banner = document.createElement('div');
-    banner.className = 'part-banner';
-    banner.innerHTML = `
-      <div>
-        <div class="part-banner-label">Identified Product</div>
-        <div class="part-banner-value">${escHtml(id.model || '—')}</div>
-      </div>
-      <div style="flex:1;padding-left:16px;border-left:1px solid var(--border)">
-        <div style="font-family:var(--display);font-size:15px;font-weight:600;color:var(--text-bright)">${escHtml(id.manufacturer || '—')}</div>
-        <div style="font-family:var(--mono);font-size:11px;color:var(--text-dim);margin-top:2px">${escHtml(id.product_line || '')} ${id.description ? '· ' + id.description : ''}</div>
-      </div>
-      <div style="font-family:var(--mono);font-size:10px;padding:4px 10px;border-radius:2px;background:${id.confidence==='high'?'rgba(46,204,113,0.1)':id.confidence==='medium'?'rgba(240,165,0,0.1)':'rgba(192,57,43,0.1)'};color:${id.confidence==='high'?'#60c080':id.confidence==='medium'?'var(--amber)':'#e07060'};border:1px solid ${id.confidence==='high'?'#1a5533':id.confidence==='medium'?'var(--amber-dim)':'rgba(192,57,43,0.3)'}">
-        ${(id.confidence||'').toUpperCase()} CONFIDENCE
-      </div>`;
-    container.appendChild(banner);
-  }
-
-  // ── 1. Distributors ──
-  if (data.distributors && data.distributors.length > 0) {
-    const section = makeSection('DISTRIBUTORS & REP CONTACTS', 'badge-priority', '01');
-    const body = section.querySelector('.section-body');
-    const grid = document.createElement('div');
-    grid.className = 'contact-grid';
-    data.distributors.forEach((d, idx) => {
-      const card = document.createElement('div');
-      card.className = 'contact-card';
-      const isWestlund = d.name && d.name.toLowerCase().includes('westlund');
-      card.innerHTML = `
-        ${isWestlund ? '<div class="best-match-badge">BEST MATCH</div>' : ''}
-        <div class="cc-name">${escHtml(d.name || '—')}</div>
-        <div class="cc-role">${escHtml(d.type || '')}${d.region ? ' · ' + d.region : ''}</div>
-        ${d.phone ? `<div class="cc-row"><span class="cc-icon">☎</span>${escHtml(d.phone)}</div>` : ''}
-        ${d.email ? `<div class="cc-row"><span class="cc-icon">✉</span><a href="mailto:${escHtml(d.email)}">${escHtml(d.email)}</a></div>` : ''}
-        ${d.website ? `<div class="cc-row"><span class="cc-icon">⌂</span><a href="${escHtml(d.website)}" target="_blank">${escHtml(truncUrl(d.website))}</a></div>` : ''}
-        ${d.notes ? `<div style="margin-top:8px;font-family:var(--body);font-size:12px;color:var(--text);line-height:1.5">${escHtml(d.notes)}</div>` : ''}`;
-      grid.appendChild(card);
-    });
-    body.appendChild(grid);
-
-    container.appendChild(section);
-  }
-
-  // ── 2. Manufacturer ──
-  if (data.manufacturer_contact) {
-    const m = data.manufacturer_contact;
-    const section = makeSection('MANUFACTURER CONTACT', 'badge-mfr', '02');
-    const body = section.querySelector('.section-body');
-    const card = document.createElement('div');
-    card.className = 'contact-card';
-    card.style.maxWidth = '480px';
-    card.innerHTML = `
-      <div class="cc-name">${escHtml(m.name || '—')}</div>
-      <div class="cc-role">${escHtml(m.hq_location || '')}</div>
-      ${m.phone ? `<div class="cc-row"><span class="cc-icon">☎</span>${escHtml(m.phone)}</div>` : ''}
-      ${m.sales_email ? `<div class="cc-row"><span class="cc-icon">✉</span><a href="mailto:${escHtml(m.sales_email)}">${escHtml(m.sales_email)}</a></div>` : ''}
-      ${m.website ? `<div class="cc-row"><span class="cc-icon">⌂</span><a href="${escHtml(m.website)}" target="_blank">${escHtml(truncUrl(m.website))}</a></div>` : ''}
-      ${m.quote_portal ? `<div class="cc-row"><span class="cc-icon">✎</span><a href="${escHtml(m.quote_portal)}" target="_blank">Quote Request Portal</a></div>` : ''}
-      ${m.rep_locator ? `<div class="cc-row"><span class="cc-icon">◎</span><a href="${escHtml(m.rep_locator)}" target="_blank">Find a Rep / Distributor</a></div>` : ''}
-      ${m.notes ? `<div style="margin-top:8px;font-family:var(--body);font-size:12px;color:var(--text);line-height:1.5">${escHtml(m.notes)}</div>` : ''}`;
-    body.appendChild(card);
-    container.appendChild(section);
-  }
-
-  // ── 3. Specs ──
-  if (data.specs && data.specs.length > 0) {
-    const section = makeSection('SPECIFICATIONS', 'badge-spec', '03');
-    const body = section.querySelector('.section-body');
-    const table = document.createElement('table');
-    table.className = 'spec-table';
-    data.specs.forEach(s => {
-      const tr = document.createElement('tr');
-      tr.innerHTML = `<td>${escHtml(s.key)}</td><td>${escHtml(s.value)}</td>`;
-      table.appendChild(tr);
-    });
-    body.appendChild(table);
-
-    if (data.documents && data.documents.length > 0) {
-      const docTitle = document.createElement('h3');
-      docTitle.textContent = 'Documents';
-      body.appendChild(docTitle);
-      data.documents.forEach(doc => {
-        const row = document.createElement('div');
-        row.className = 'cc-row';
-        row.innerHTML = `<span class="cc-icon">⇩</span>${doc.url
-          ? `<a href="${escHtml(doc.url)}" target="_blank">${escHtml(doc.title || doc.type)}</a>`
-          : escHtml(doc.title || doc.type)}
-          <span style="color:var(--text-dim);font-size:10px;margin-left:4px">[${escHtml(doc.type)}]</span>`;
-        body.appendChild(row);
-      });
-    }
-    container.appendChild(section);
-  }
-
-  // ── 4. Alternates ──
-  if (data.alternates && data.alternates.length > 0) {
-    const section = makeSection('CROSS-REFERENCES & ALTERNATES', 'badge-alt', '04');
-    const body = section.querySelector('.section-body');
-    data.alternates.forEach(a => {
-      const row = document.createElement('div');
-      row.style.cssText = 'display:flex;gap:12px;padding:8px 0;border-bottom:1px solid var(--border);align-items:flex-start;';
-      row.innerHTML = `
-        <div style="flex:1">
-          <span style="font-family:var(--mono);font-size:13px;color:var(--text-bright)">${escHtml(a.model||'—')}</span>
-          <span style="font-family:var(--mono);font-size:10px;color:var(--text-dim);margin-left:8px">${escHtml(a.manufacturer||'')}</span>
-        </div>
-        <div style="font-family:var(--mono);font-size:10px;color:var(--text-dim);text-align:right;max-width:50%">${escHtml(a.notes||'')}</div>`;
-      body.appendChild(row);
-    });
-    container.appendChild(section);
-  }
-
-  // ── Sourcing Notes ──
-  if (data.sourcing_notes) {
-    const note = document.createElement('div');
-    note.style.cssText = 'background:var(--surface);border:1px solid var(--amber-dim);border-left:3px solid var(--amber);border-radius:3px;padding:14px 18px;font-family:var(--mono);font-size:12px;color:var(--text);line-height:1.7;';
-    note.innerHTML = `<span style="color:var(--amber);letter-spacing:0.2em;font-size:10px;display:block;margin-bottom:6px">⚑ SOURCING NOTES</span>${escHtml(data.sourcing_notes)}`;
-    container.appendChild(note);
-  }
+  const rendered = new Set();
+  finalizeRender(rawText, container, rendered, document.getElementById('regionSelect')?.value || '');
 }
 
 // ─── HELPERS ─────────────────────────────────────────────────────────────────
