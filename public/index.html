@@ -185,47 +185,58 @@
 
   .mode-tabs {
     display: flex;
+    gap: 4px;
+    padding: 6px;
+    background: var(--bg);
     border-bottom: 1px solid var(--border);
   }
 
   .mode-tab {
     flex: 1;
-    padding: 12px 20px;
-    font-family: var(--mono);
-    font-size: 11px;
-    letter-spacing: 0.15em;
+    padding: 14px 20px;
+    font-family: var(--display);
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.1em;
     text-transform: uppercase;
     color: var(--text-dim);
     background: transparent;
-    border: none;
+    border: 1px solid transparent;
+    border-radius: 8px;
     cursor: pointer;
-    transition: all 0.2s;
-    border-bottom: 2px solid transparent;
-    margin-bottom: -1px;
+    transition: all 0.25s ease;
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 8px;
+    gap: 10px;
   }
 
-  .mode-tab:hover { color: var(--text); background: var(--surface2); }
+  .mode-tab:hover {
+    color: var(--text);
+    background: var(--surface2);
+    border-color: var(--border);
+  }
 
   .mode-tab.active {
     color: var(--amber);
-    border-bottom-color: var(--amber);
-    background: var(--amber-glow);
+    background: rgba(240,165,0,0.08);
+    border-color: var(--amber-dim);
+    box-shadow: 0 0 12px rgba(240,165,0,0.06), inset 0 0 20px rgba(240,165,0,0.03);
   }
 
   .input-body { padding: 24px; }
 
   .category-tabs {
     display: flex;
+    gap: 4px;
+    padding: 6px;
+    background: var(--bg);
     border-bottom: 1px solid var(--border);
   }
 
   .category-tab {
     flex: 1;
-    padding: 10px 16px;
+    padding: 12px 16px;
     font-family: var(--display);
     font-size: 13px;
     font-weight: 600;
@@ -233,19 +244,23 @@
     text-transform: uppercase;
     color: var(--text-dim);
     background: transparent;
-    border: none;
+    border: 1px solid transparent;
+    border-radius: 8px;
     cursor: pointer;
-    transition: all 0.2s;
-    border-bottom: 2px solid transparent;
-    margin-bottom: -1px;
+    transition: all 0.25s ease;
   }
 
-  .category-tab:hover { color: var(--text); background: var(--surface2); }
+  .category-tab:hover {
+    color: var(--text);
+    background: var(--surface2);
+    border-color: var(--border);
+  }
 
   .category-tab.active {
     color: var(--steel);
-    border-bottom-color: var(--steel);
     background: rgba(74,111,165,0.08);
+    border-color: var(--steel-dim);
+    box-shadow: 0 0 12px rgba(74,111,165,0.06), inset 0 0 20px rgba(74,111,165,0.03);
   }
 
   /* Text mode */
