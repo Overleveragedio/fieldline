@@ -8,19 +8,19 @@
 <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
 <style>
   :root {
-    --bg: #0a0c0b;
-    --surface: #111412;
-    --surface2: #181c19;
-    --border: #232820;
-    --border-bright: #2e3429;
-    --amber: #f0a500;
-    --amber-dim: #7a5400;
-    --amber-glow: rgba(240,165,0,0.12);
-    --steel: #4a6fa5;
-    --steel-dim: #2a3f5f;
-    --text: #c8cfc4;
-    --text-dim: #5a6455;
-    --text-bright: #e8efe4;
+    --bg: #ffffff;
+    --surface: #f5f7fa;
+    --surface2: #edf0f5;
+    --border: #dce1e8;
+    --border-bright: #c8d0da;
+    --amber: #1a5fb4;
+    --amber-dim: #a0b4d0;
+    --amber-glow: rgba(26,95,180,0.08);
+    --steel: #2e7d32;
+    --steel-dim: #81c784;
+    --text: #3a4250;
+    --text-dim: #8a95a5;
+    --text-bright: #1a1f2b;
     --danger: #c0392b;
     --success: #2ecc71;
     --mono: 'IBM Plex Mono', monospace;
@@ -37,9 +37,9 @@
     min-height: 100vh;
     overflow-x: hidden;
     background-image:
-      radial-gradient(ellipse 80% 60% at 50% -10%, rgba(240,165,0,0.04) 0%, transparent 70%),
-      repeating-linear-gradient(0deg, transparent, transparent 39px, rgba(255,255,255,0.015) 39px, rgba(255,255,255,0.015) 40px),
-      repeating-linear-gradient(90deg, transparent, transparent 39px, rgba(255,255,255,0.015) 39px, rgba(255,255,255,0.015) 40px);
+      radial-gradient(ellipse 80% 60% at 50% -10%, rgba(26,95,180,0.04) 0%, transparent 70%),
+      repeating-linear-gradient(0deg, transparent, transparent 39px, rgba(0,0,0,0.02) 39px, rgba(0,0,0,0.02) 40px),
+      repeating-linear-gradient(90deg, transparent, transparent 39px, rgba(0,0,0,0.02) 39px, rgba(0,0,0,0.02) 40px);
   }
 
   /* ─── HEADER ─── */
@@ -50,7 +50,7 @@
     align-items: center;
     justify-content: space-between;
     height: 56px;
-    background: rgba(10,12,11,0.9);
+    background: rgba(255,255,255,0.95);
     backdrop-filter: blur(8px);
     position: sticky;
     top: 0;
@@ -237,7 +237,7 @@
   /* Submit button */
   .btn-search {
     background: var(--amber);
-    color: #0a0c0b;
+    color: #ffffff;
     border: none;
     border-radius: 6px;
     font-family: var(--display);
@@ -258,7 +258,7 @@
     margin-top: 8px;
   }
 
-  .btn-search:hover { background: #ffc107; transform: translateY(-1px); box-shadow: 0 4px 16px rgba(240,165,0,0.3); }
+  .btn-search:hover { background: #2470cc; transform: translateY(-1px); box-shadow: 0 4px 16px rgba(26,95,180,0.3); }
   .btn-search:active { transform: translateY(0); }
   .btn-search:disabled { opacity: 0.4; cursor: not-allowed; transform: none; box-shadow: none; }
 
@@ -269,7 +269,7 @@
     background: var(--surface);
     border: 1px solid var(--border-bright);
     border-radius: 10px;
-    box-shadow: 0 2px 12px rgba(0,0,0,0.25);
+    box-shadow: 0 2px 12px rgba(0,0,0,0.06);
     margin-bottom: 24px;
   }
 
@@ -333,7 +333,7 @@
     border-radius: 10px;
     overflow: hidden;
     animation: slide-up 0.4s ease both;
-    box-shadow: 0 2px 12px rgba(0,0,0,0.25);
+    box-shadow: 0 2px 12px rgba(0,0,0,0.06);
     transition: border-color 0.2s;
   }
 
@@ -363,10 +363,10 @@
     font-weight: 500;
   }
 
-  .badge-priority { background: rgba(240,165,0,0.15); color: var(--amber); border: 1px solid var(--amber-dim); }
-  .badge-mfr { background: rgba(74,111,165,0.15); color: #7aabde; border: 1px solid var(--steel-dim); }
-  .badge-spec { background: rgba(46,204,113,0.1); color: #60c080; border: 1px solid #1a5533; }
-  .badge-alt { background: rgba(180,120,50,0.1); color: #c08040; border: 1px solid #5a3510; }
+  .badge-priority { background: rgba(26,95,180,0.15); color: var(--amber); border: 1px solid var(--amber-dim); }
+  .badge-mfr { background: rgba(46,125,50,0.1); color: #2e7d32; border: 1px solid var(--steel-dim); }
+  .badge-spec { background: rgba(46,204,113,0.08); color: #1b8a40; border: 1px solid #81c784; }
+  .badge-alt { background: rgba(180,120,50,0.08); color: #8a5a20; border: 1px solid #d4a060; }
 
   .section-title {
     font-family: var(--display);
@@ -420,7 +420,7 @@
     background: var(--bg);
     padding: 2px 6px;
     border-radius: 4px;
-    color: #7aabde;
+    color: #1a5fb4;
   }
 
   /* Part number display */
@@ -431,7 +431,7 @@
     border-radius: 8px;
     padding: 16px 20px;
     margin-bottom: 24px;
-    box-shadow: 0 2px 12px rgba(0,0,0,0.25);
+    box-shadow: 0 2px 12px rgba(0,0,0,0.06);
     display: flex;
     align-items: center;
     gap: 12px;
@@ -503,8 +503,8 @@
   /* ─── AD TICKER ─── */
   .ad-ticker {
     overflow: hidden;
-    background: linear-gradient(90deg, rgba(240,165,0,0.08), rgba(240,165,0,0.04), rgba(240,165,0,0.08));
-    border-bottom: 1px solid rgba(240,165,0,0.15);
+    background: linear-gradient(90deg, rgba(26,95,180,0.08), rgba(26,95,180,0.04), rgba(26,95,180,0.08));
+    border-bottom: 1px solid rgba(26,95,180,0.15);
     white-space: nowrap;
     position: relative;
   }
@@ -660,9 +660,9 @@
 
   .bom-table tr:last-child td { border-bottom: none; }
 
-  .bom-table tr:nth-child(even) { background: rgba(255,255,255,0.015); }
+  .bom-table tr:nth-child(even) { background: rgba(0,0,0,0.02); }
 
-  .bom-table tr:hover { background: rgba(240,165,0,0.03); }
+  .bom-table tr:hover { background: rgba(26,95,180,0.03); }
 
   .btn-export {
     background: none;
@@ -697,7 +697,7 @@
     display: flex;
     gap: 24px;
     flex-wrap: wrap;
-    box-shadow: 0 2px 12px rgba(0,0,0,0.25);
+    box-shadow: 0 2px 12px rgba(0,0,0,0.06);
   }
 
   .drawing-banner-item {
@@ -721,7 +721,7 @@
   }
 
   .notes-panel {
-    background: rgba(240,165,0,0.04);
+    background: rgba(26,95,180,0.04);
     border: 1px dashed var(--amber-dim);
     border-radius: 8px;
     padding: 16px 20px;
