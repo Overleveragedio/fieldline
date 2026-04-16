@@ -28,6 +28,7 @@
   }
 
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
 
   body {
     background: var(--bg);
@@ -138,7 +139,303 @@
     padding: 40px 24px 80px;
   }
 
-  /* ─── HERO ─── */
+  /* ─── LANDING PAGE ─── */
+  .landing-hero {
+    min-height: 85vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 80px 24px;
+    position: relative;
+    background:
+      radial-gradient(ellipse 80% 50% at 50% 30%, rgba(240,165,0,0.06) 0%, transparent 70%);
+  }
+
+  .landing-hero h1 {
+    font-family: var(--display);
+    font-size: clamp(42px, 6vw, 72px);
+    font-weight: 700;
+    color: var(--text-bright);
+    line-height: 1.05;
+    letter-spacing: 0.02em;
+    margin-bottom: 20px;
+  }
+
+  .landing-hero h1 span { color: var(--amber); }
+
+  .landing-hero .hero-subtitle {
+    font-family: var(--body);
+    font-size: 18px;
+    color: var(--text-dim);
+    max-width: 560px;
+    line-height: 1.7;
+    margin-bottom: 40px;
+  }
+
+  .landing-hero .hero-ctas {
+    display: flex;
+    gap: 16px;
+    align-items: center;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .btn-cta {
+    background: var(--amber);
+    color: #0a0c0b;
+    border: none;
+    border-radius: 8px;
+    font-family: var(--display);
+    font-weight: 700;
+    font-size: 16px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    padding: 16px 36px;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .btn-cta:hover {
+    background: #ffc107;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 24px rgba(240,165,0,0.3);
+  }
+
+  .btn-cta-secondary {
+    font-family: var(--mono);
+    font-size: 12px;
+    letter-spacing: 0.1em;
+    color: var(--text-dim);
+    text-decoration: none;
+    border-bottom: 1px solid var(--border-bright);
+    padding-bottom: 2px;
+    transition: all 0.2s;
+  }
+
+  .btn-cta-secondary:hover { color: var(--amber); border-color: var(--amber-dim); }
+
+  .landing-section {
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 80px 24px;
+  }
+
+  .section-heading {
+    font-family: var(--display);
+    font-size: 28px;
+    font-weight: 700;
+    color: var(--text-bright);
+    text-align: center;
+    letter-spacing: 0.04em;
+    margin-bottom: 48px;
+  }
+
+  .section-heading span { color: var(--amber); }
+
+  /* How It Works */
+  .how-it-works {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+  }
+
+  .step-card {
+    background: var(--surface);
+    border: 1px solid var(--border-bright);
+    border-radius: 10px;
+    padding: 28px 24px;
+    text-align: center;
+    position: relative;
+    transition: all 0.25s ease;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.2);
+  }
+
+  .step-card:hover {
+    border-color: var(--amber-dim);
+    transform: translateY(-3px);
+    box-shadow: 0 6px 24px rgba(0,0,0,0.3);
+  }
+
+  .step-number {
+    font-family: var(--display);
+    font-size: 36px;
+    font-weight: 800;
+    color: var(--amber);
+    opacity: 0.2;
+    position: absolute;
+    top: 12px;
+    right: 16px;
+  }
+
+  .step-icon-lg {
+    font-size: 32px;
+    margin-bottom: 16px;
+    display: block;
+  }
+
+  .step-title {
+    font-family: var(--display);
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--text-bright);
+    letter-spacing: 0.04em;
+    margin-bottom: 8px;
+  }
+
+  .step-desc {
+    font-family: var(--body);
+    font-size: 13px;
+    color: var(--text-dim);
+    line-height: 1.6;
+  }
+
+  /* Arrow connectors between steps */
+  .step-arrow {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--amber-dim);
+    font-size: 20px;
+  }
+
+  /* Features */
+  .feature-cards {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+  }
+
+  .feature-card {
+    background: var(--surface);
+    border: 1px solid var(--border-bright);
+    border-radius: 10px;
+    padding: 32px 28px;
+    transition: all 0.25s ease;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.2);
+  }
+
+  .feature-card:hover {
+    border-color: var(--amber-dim);
+    transform: translateY(-3px);
+    box-shadow: 0 6px 24px rgba(0,0,0,0.3);
+  }
+
+  .feature-badge {
+    display: inline-block;
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    padding: 4px 10px;
+    border-radius: 4px;
+    margin-bottom: 16px;
+  }
+
+  .feature-badge.primary {
+    background: rgba(240,165,0,0.1);
+    color: var(--amber);
+    border: 1px solid var(--amber-dim);
+  }
+
+  .feature-badge.secondary {
+    background: rgba(74,111,165,0.1);
+    color: #7aabde;
+    border: 1px solid var(--steel-dim);
+  }
+
+  .feature-title {
+    font-family: var(--display);
+    font-size: 20px;
+    font-weight: 600;
+    color: var(--text-bright);
+    margin-bottom: 10px;
+    letter-spacing: 0.03em;
+  }
+
+  .feature-desc {
+    font-family: var(--body);
+    font-size: 14px;
+    color: var(--text-dim);
+    line-height: 1.7;
+    margin-bottom: 20px;
+  }
+
+  .feature-link {
+    font-family: var(--mono);
+    font-size: 12px;
+    letter-spacing: 0.1em;
+    color: var(--amber);
+    text-decoration: none;
+    transition: all 0.2s;
+  }
+
+  .feature-link:hover { text-decoration: underline; }
+
+  /* Industries */
+  .industries {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    justify-content: center;
+  }
+
+  .industry-pill {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    color: var(--text);
+    padding: 10px 20px;
+    border: 1px solid var(--border-bright);
+    border-radius: 20px;
+    background: var(--surface);
+    transition: all 0.2s;
+  }
+
+  .industry-pill:hover {
+    border-color: var(--amber-dim);
+    color: var(--amber);
+    background: rgba(240,165,0,0.04);
+  }
+
+  /* Divider line between landing and tools */
+  .landing-divider {
+    max-width: 960px;
+    margin: 0 auto;
+    border: none;
+    border-top: 1px solid var(--border);
+    position: relative;
+  }
+
+  /* Footer */
+  .site-footer {
+    border-top: 1px solid var(--border);
+    padding: 32px 24px;
+    text-align: center;
+    margin-top: 80px;
+  }
+
+  .footer-text {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--text-dim);
+    letter-spacing: 0.08em;
+  }
+
+  .footer-text a {
+    color: var(--text-dim);
+    text-decoration: none;
+    transition: color 0.2s;
+  }
+
+  .footer-text a:hover { color: var(--amber); }
+
+  /* ─── HERO (kept for search panel area) ─── */
   .hero {
     text-align: center;
     padding: 48px 0 40px;
@@ -1156,6 +1453,43 @@
 
   /* ─── MOBILE RESPONSIVE ─── */
   @media (max-width: 768px) {
+    .landing-hero {
+      min-height: 70vh;
+      padding: 60px 20px;
+    }
+
+    .landing-hero .hero-subtitle {
+      font-size: 15px;
+    }
+
+    .landing-section {
+      padding: 48px 16px;
+    }
+
+    .section-heading {
+      font-size: 22px;
+      margin-bottom: 32px;
+    }
+
+    .how-it-works {
+      grid-template-columns: 1fr;
+      gap: 16px;
+    }
+
+    .feature-cards {
+      grid-template-columns: 1fr;
+      gap: 16px;
+    }
+
+    .industries {
+      gap: 8px;
+    }
+
+    .industry-pill {
+      font-size: 10px;
+      padding: 8px 14px;
+    }
+
     header {
       padding: 0 16px;
     }
@@ -1315,8 +1649,74 @@
   <button class="btn-upgrade" onclick="handleUpgrade()">UPGRADE</button>
 </div>
 
+<!-- ─── LANDING PAGE ─── -->
+<section class="landing-hero" id="hero">
+  <h1>Industrial Sourcing.<br><span>Simplified.</span></h1>
+  <p class="hero-subtitle">AI-powered part search and automated BOM takeoffs for pipe, valves, fittings, and flanges. Enter a part number and get distributor contacts, specs, and sourcing intel in seconds.</p>
+  <div class="hero-ctas">
+    <a href="#search-panel" class="btn-cta">Start Searching</a>
+    <a href="#how-it-works" class="btn-cta-secondary">Learn how it works</a>
+  </div>
+</section>
+
+<section class="landing-section" id="how-it-works">
+  <h2 class="section-heading">How It <span>Works</span></h2>
+  <div class="how-it-works">
+    <div class="step-card">
+      <div class="step-number">01</div>
+      <span class="step-icon-lg">⌨</span>
+      <div class="step-title">Enter a Part Number</div>
+      <div class="step-desc">Type a model number, part number, or upload a nameplate photo. Add context like size, material, or pressure rating.</div>
+    </div>
+    <div class="step-card">
+      <div class="step-number">02</div>
+      <span class="step-icon-lg">⚡</span>
+      <div class="step-title">AI Searches the Web</div>
+      <div class="step-desc">Our AI searches manufacturer databases, distributor catalogs, and spec sheets across the web in real time.</div>
+    </div>
+    <div class="step-card">
+      <div class="step-number">03</div>
+      <span class="step-icon-lg">☎</span>
+      <div class="step-title">Get Distributor Contacts</div>
+      <div class="step-desc">Receive verified distributor contacts, manufacturer info, specifications, and sourcing advice — all in one view.</div>
+    </div>
+  </div>
+</section>
+
+<section class="landing-section" id="features">
+  <h2 class="section-heading">What You Can <span>Do</span></h2>
+  <div class="feature-cards">
+    <div class="feature-card">
+      <div class="feature-badge primary">LIVE NOW</div>
+      <div class="feature-title">Part Search</div>
+      <div class="feature-desc">Enter a model number or upload a nameplate photo — get distributor contacts, manufacturer info, and spec sheets in seconds. Results stream in progressively as the AI finds them.</div>
+      <a href="#search-panel" class="feature-link">Try It Now ↓</a>
+    </div>
+    <div class="feature-card">
+      <div class="feature-badge secondary">LIVE NOW</div>
+      <div class="feature-title">Automated Take Offs</div>
+      <div class="feature-desc">Upload P&IDs, isometrics, or spool sheets — the AI extracts every tagged component into a complete bill of materials. Export to Excel with one click.</div>
+      <a href="/takeoff" class="feature-link">Go to Take Offs →</a>
+    </div>
+  </div>
+</section>
+
+<section class="landing-section" id="industries">
+  <h2 class="section-heading">Built For <span>Your Industry</span></h2>
+  <div class="industries">
+    <div class="industry-pill">Mining & Resources</div>
+    <div class="industry-pill">Oil & Gas Pipelines</div>
+    <div class="industry-pill">Refrigeration & HVAC</div>
+    <div class="industry-pill">Commercial Construction</div>
+    <div class="industry-pill">Water & Wastewater</div>
+    <div class="industry-pill">Power Generation</div>
+  </div>
+</section>
+
+<hr class="landing-divider">
+
 <main>
-  <div class="hero">
+  <div class="hero" id="search-panel">
     <div class="hero-eyebrow">// Pipe · Valves · Fittings · Flanges</div>
     <h1 class="hero-title">Find Any Part.<br><span>Source It Fast.</span></h1>
     <p class="hero-desc">Enter a model number or upload a nameplate photo — the AI searches the web and surfaces distributors, manufacturer contacts, and spec sheets.</p>
@@ -1531,6 +1931,12 @@
   <div class="results" id="results"></div>
 
 </main>
+
+<footer class="site-footer">
+  <div class="footer-text">
+    &copy; 2026 SearchToSupply. All rights reserved. &nbsp;·&nbsp; <a href="mailto:info@searchtosupply.com">Contact Us</a> &nbsp;·&nbsp; Powered by AI
+  </div>
+</footer>
 
 <!-- Login Modal -->
 <div class="modal-overlay" id="loginModal">
