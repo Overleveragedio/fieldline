@@ -108,6 +108,26 @@
     border-bottom-color: var(--amber);
   }
 
+  .mobile-menu-btn {
+    display: none;
+    align-items: center;
+    justify-content: center;
+    background: none;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    width: 36px;
+    height: 36px;
+    cursor: pointer;
+    color: var(--text);
+    font-size: 18px;
+    transition: all 0.2s;
+  }
+
+  .mobile-menu-btn:hover {
+    background: var(--surface);
+    border-color: var(--border-bright);
+  }
+
   .header-status {
     display: flex;
     align-items: center;
@@ -1453,8 +1473,7 @@
   /* ─── MOBILE RESPONSIVE ─── */
   @media (max-width: 768px) {
     .landing-hero {
-      min-height: 70vh;
-      padding: 60px 20px;
+      padding: 40px 20px 24px;
     }
 
     .landing-hero .hero-subtitle {
@@ -1493,16 +1512,51 @@
       padding: 0 16px;
     }
 
+    .logo-sub {
+      display: none;
+    }
+
     .header-nav {
-      gap: 16px;
+      display: none;
+      position: absolute;
+      top: 56px;
+      left: 0;
+      right: 0;
+      background: var(--bg);
+      border-bottom: 1px solid var(--border);
+      flex-direction: column;
+      padding: 12px 16px;
+      gap: 0;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+      z-index: 200;
+      transform: none;
+    }
+
+    .header-nav.open {
+      display: flex;
     }
 
     .header-nav a {
-      font-size: 9px;
+      font-size: 12px;
+      padding: 12px 0;
+      border-bottom: none;
+      border-bottom: 1px solid var(--border);
     }
 
-    .logo-sub {
+    .header-nav a:last-child {
+      border-bottom: none;
+    }
+
+    .header-nav a.active {
+      border-bottom-color: var(--border);
+    }
+
+    .header-auth {
       display: none;
+    }
+
+    .mobile-menu-btn {
+      display: flex !important;
     }
 
     main {
@@ -1624,6 +1678,7 @@
     <!-- <button class="btn-auth signin" id="btnSignIn" onclick="openLoginModal()" style="display:none">SIGN IN</button> -->
     <button class="btn-auth signout" id="btnSignOut" onclick="signOut()" style="display:none">SIGN OUT</button>
   </div>
+  <button class="mobile-menu-btn" onclick="document.querySelector('.header-nav').classList.toggle('open'); this.textContent = this.textContent === '☰' ? '✕' : '☰'">☰</button>
 </header>
 
 <!-- Ad ticker -->
